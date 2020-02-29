@@ -362,6 +362,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "observations_to_bootstrap", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "monotone_constraints", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_approxes", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "feature_penalties", &treeOptions, &seenKeys);
 
     auto& bootstrapOptions = treeOptions["bootstrap"];
     bootstrapOptions.SetType(NJson::JSON_MAP);
@@ -687,6 +688,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(treeOptions, "dev_leafwise_approxes", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "dev_leafwise_approxes");
+
+        CopyOption(treeOptions, "feature_penalties", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "feature_penalties");
 
         // bootstrap
         if (treeOptions.Has("bootstrap")) {

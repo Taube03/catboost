@@ -10,6 +10,29 @@ namespace NJson {
 }
 
 namespace NCatboostOptions {
+    struct TFeaturePenaltiesOptions {
+    public:
+        TFeaturePenaltiesOptions()
+            : PenaltiesForRow("penalties_for_row", {}, ETaskType::CPU)
+        {
+        }
+
+        bool operator==(const TFeaturePenaltiesOptions& rhs) const {
+            return std::tie(PenaltiesForRow) ==
+                std::tie(rhs.PenaltiesForRow);
+        }
+
+        bool operator!=(const TFeaturePenaltiesOptions& rhs) const {
+            return !(rhs == *this);
+        }
+
+        void Save(NJson::TJsonValue* options) const;
+        void Load(const NJson::TJsonValue& options);
+
+        TCpuOnlyOption<TVector<float>> PenaltiesForRow;
+        //TODO(taube): add more penalties
+    };
+
     class TObliviousTreeLearnerOptions {
     public:
         explicit TObliviousTreeLearnerOptions(ETaskType taskType);
@@ -52,5 +75,6 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<TMap<ui32, int>> MonotoneConstraints;
         TCpuOnlyOption <bool> DevLeafwiseApproxes;
+        TCpuOnlyOption<TFeaturePenaltiesOptions> FeaturePenalties;
     };
 }
