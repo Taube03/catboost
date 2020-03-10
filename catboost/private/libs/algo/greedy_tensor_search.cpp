@@ -599,6 +599,40 @@ static void SelectCtrsToDropAfterCalc(
     }
 }
 
+static float GetSplitFeaturePenalty(const TSplit& split, const TVector<float>& penaltiesForEachUse, const float penaltiesCoefficient) {
+    float result = 0;
+    if (split.Type == ESplitType::FloatFeature || split.Type == ESplitType::OneHotFeature) {
+        Y_ASSERT(split.FeatureIdx != -1);
+        result = penaltiesForEachUse[split.FeatureIdx];
+    } else if (split.Type == ESplitType::OnlineCtr) {
+        for (const int floatFeatureIdx : split.Ctr.Projection.CatFeatures) {
+            result += penaltiesForEachUse[floatFeatureIdx];
+        }
+        for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
+            result += penaltiesForEachUse[binFeature.FloatFeature];
+        }
+        for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
+            result += penaltiesForEachUse[oneHotFeature.CatFeatureIdx];
+        }
+    } else {
+        Y_ASSERT(false); //Another types are not supported in CPU
+    }
+
+    result *= penaltiesCoefficient;
+    return result;
+}
+
+static void AddFeaturePenalties(
+    const TVector<float>& penaltiesForEachUse,
+    const float penaltiesCoefficient,
+    const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
+    ui32 oneHotMaxSize,
+    TCandidateInfo* cand
+) {
+    double& score = cand->BestScore.Val;
+    score += GetSplitFeaturePenalty(cand->GetBestSplit(objectsData, oneHotMaxSize), penaltiesForEachUse, penaltiesCoefficient);
+}
+
 static void CalcBestScore(
     const TTrainingForCPUDataProviders& data,
     const TSplitTree& currentTree,
@@ -677,6 +711,16 @@ static void CalcBestScore(
                 scoreStDev,
                 *candidatesContext,
                 &candidate.Candidates);
+
+            for (size_t subcandidateIdx = 0; subcandidateIdx < allScores.size(); ++subcandidateIdx) {
+                AddFeaturePenalties(
+                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesForEachUse,
+                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient,
+                    *data.Learn->ObjectsData,
+                    candidatesContext->OneHotMaxSize,
+                    &candidate.Candidates[subcandidateIdx]
+                );
+            }
         },
         0,
         candList.ysize(),
@@ -755,6 +799,16 @@ static void CalcBestScoreLeafwise(
                 scoreStDev,
                 *candidatesContext,
                 &candidate.Candidates);
+
+            for (size_t subcandidateIdx = 0; subcandidateIdx < candidateScores.size(); ++subcandidateIdx) {
+                AddFeaturePenalties(
+                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesForEachUse,
+                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient,
+                    *data.Learn->ObjectsData,
+                    candidatesContext->OneHotMaxSize,
+                    &candidate.Candidates[subcandidateIdx]
+                );
+            }
 
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
                 fold->GetCtrRef(splitEnsemble.SplitCandidate.Ctr.Projection).Feature.clear();

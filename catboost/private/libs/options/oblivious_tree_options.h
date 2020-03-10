@@ -13,13 +13,14 @@ namespace NCatboostOptions {
     struct TFeaturePenaltiesOptions {
     public:
         TFeaturePenaltiesOptions()
-            : PenaltiesForRow("penalties_for_row", {}, ETaskType::CPU)
+            : PenaltiesForEachUse("penalties_for_each_use", {}, ETaskType::CPU)
+            , PenaltiesCoefficient("penalties_coefficient", {}, ETaskType::CPU)
         {
         }
 
         bool operator==(const TFeaturePenaltiesOptions& rhs) const {
-            return std::tie(PenaltiesForRow) ==
-                std::tie(rhs.PenaltiesForRow);
+            return std::tie(PenaltiesForEachUse, PenaltiesCoefficient) ==
+                std::tie(rhs.PenaltiesForEachUse, PenaltiesCoefficient);
         }
 
         bool operator!=(const TFeaturePenaltiesOptions& rhs) const {
@@ -29,7 +30,8 @@ namespace NCatboostOptions {
         void Save(NJson::TJsonValue* options) const;
         void Load(const NJson::TJsonValue& options);
 
-        TCpuOnlyOption<TVector<float>> PenaltiesForRow;
+        TCpuOnlyOption<TVector<float>> PenaltiesForEachUse;
+        TCpuOnlyOption<float> PenaltiesCoefficient;
         //TODO(taube): add more penalties
     };
 
