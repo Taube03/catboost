@@ -599,20 +599,25 @@ static void SelectCtrsToDropAfterCalc(
     }
 }
 
-static float GetSplitFeaturePenalty(const TSplit& split, const TVector<float>& penaltiesForEachUse, const float penaltiesCoefficient) {
+static inline float GetPenalty(const NCatboostOptions::TPerFeaturePenalty& penalties, const ui32 featureIndex) {
+    auto it = penalties.find(featureIndex);
+    return (it != penalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_PENALTY);
+}
+
+static float GetSplitFeaturePenalty(const TSplit& split, const NCatboostOptions::TPerFeaturePenalty& penaltiesForEachUse, const float penaltiesCoefficient) {
     float result = 0;
     if (split.Type == ESplitType::FloatFeature || split.Type == ESplitType::OneHotFeature) {
         Y_ASSERT(split.FeatureIdx != -1);
-        result = penaltiesForEachUse[split.FeatureIdx];
+        result = GetPenalty(penaltiesForEachUse, split.FeatureIdx);
     } else if (split.Type == ESplitType::OnlineCtr) {
         for (const int floatFeatureIdx : split.Ctr.Projection.CatFeatures) {
-            result += penaltiesForEachUse[floatFeatureIdx];
+            result += GetPenalty(penaltiesForEachUse, floatFeatureIdx);
         }
         for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
-            result += penaltiesForEachUse[binFeature.FloatFeature];
+            result += GetPenalty(penaltiesForEachUse, binFeature.FloatFeature);
         }
         for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
-            result += penaltiesForEachUse[oneHotFeature.CatFeatureIdx];
+            result += GetPenalty(penaltiesForEachUse, oneHotFeature.CatFeatureIdx);
         }
     } else {
         Y_ASSERT(false); //Another types are not supported in CPU
@@ -623,7 +628,7 @@ static float GetSplitFeaturePenalty(const TSplit& split, const TVector<float>& p
 }
 
 static void AddFeaturePenalties(
-    const TVector<float>& penaltiesForEachUse,
+    const NCatboostOptions::TPerFeaturePenalty& penaltiesForEachUse,
     const float penaltiesCoefficient,
     const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize,

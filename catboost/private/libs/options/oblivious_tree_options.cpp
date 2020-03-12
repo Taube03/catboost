@@ -8,14 +8,6 @@
 #include <library/json/json_value.h>
 #include <util/string/cast.h>
 
-void NCatboostOptions::TFeaturePenaltiesOptions::Load(const NJson::TJsonValue& options) {
-	CheckedLoad(options, &PenaltiesForEachUse, &PenaltiesCoefficient);
-}
-
-void NCatboostOptions::TFeaturePenaltiesOptions::Save(NJson::TJsonValue* options) const {
-	SaveFields(options, PenaltiesForEachUse, PenaltiesCoefficient);
-}
-
 NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETaskType taskType)
     : MaxDepth("depth", 6)
       , LeavesEstimationIterations("leaf_estimation_iterations", 1)

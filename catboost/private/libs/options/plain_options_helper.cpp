@@ -362,7 +362,6 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "observations_to_bootstrap", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "monotone_constraints", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_approxes", &treeOptions, &seenKeys);
-    CopyOption(plainOptions, "feature_penalties", &treeOptions, &seenKeys);
 
     auto& bootstrapOptions = treeOptions["bootstrap"];
     bootstrapOptions.SetType(NJson::JSON_MAP);
@@ -372,6 +371,11 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "subsample", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "mvs_reg", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "sampling_unit", &bootstrapOptions, &seenKeys);
+
+    auto& featurePenaltiesOptions = treeOptions["penalties"];
+    featurePenaltiesOptions.SetType(NJson::JSON_MAP);
+    CopyOption(plainOptions, "penalties_for_each_use", &featurePenaltiesOptions, &seenKeys);
+    CopyOption(plainOptions, "penalties_coefficient", &featurePenaltiesOptions, &seenKeys);
 
     //feature evaluation options
     if (GetTaskType(plainOptions) == ETaskType::GPU) {
@@ -689,9 +693,6 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(treeOptions, "dev_leafwise_approxes", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "dev_leafwise_approxes");
 
-        CopyOption(treeOptions, "feature_penalties", &plainOptionsJson, &seenKeys);
-        DeleteSeenOption(&optionsCopyTree, "feature_penalties");
-
         // bootstrap
         if (treeOptions.Has("bootstrap")) {
             const auto& bootstrapOptions = treeOptions["bootstrap"];
@@ -715,6 +716,18 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             CB_ENSURE(optionsCopyTreeBootstrap.GetMapSafe().empty(), "bootstrap: key " + optionsCopyTreeBootstrap.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyTree, "bootstrap");
         }
+
+        if (treeOptions.Has("penalties")) {
+            const auto& penaltiesOptions = treeOptions["penalties"];
+            auto& optionsCopyTreePenalties = optionsCopyTree["penalties"];
+
+            CopyOption(penaltiesOptions, "penalties_for_each_use", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreePenalties, "penalties_for_each_use");
+
+            CopyOption(penaltiesOptions, "penalties_coefficient", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreePenalties, "penalties_coefficient");
+        }
+
         CB_ENSURE(optionsCopyTree.GetMapSafe().empty(), "tree_learner_options: key " + optionsCopyTree.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "tree_learner_options");
     }

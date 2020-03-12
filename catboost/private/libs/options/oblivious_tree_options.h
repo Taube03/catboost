@@ -2,6 +2,7 @@
 
 #include "option.h"
 #include "bootstrap_options.h"
+#include "feature_penalties_options.h"
 
 #include <util/system/types.h>
 
@@ -10,31 +11,6 @@ namespace NJson {
 }
 
 namespace NCatboostOptions {
-    struct TFeaturePenaltiesOptions {
-    public:
-        TFeaturePenaltiesOptions()
-            : PenaltiesForEachUse("penalties_for_each_use", {}, ETaskType::CPU)
-            , PenaltiesCoefficient("penalties_coefficient", {}, ETaskType::CPU)
-        {
-        }
-
-        bool operator==(const TFeaturePenaltiesOptions& rhs) const {
-            return std::tie(PenaltiesForEachUse, PenaltiesCoefficient) ==
-                std::tie(rhs.PenaltiesForEachUse, PenaltiesCoefficient);
-        }
-
-        bool operator!=(const TFeaturePenaltiesOptions& rhs) const {
-            return !(rhs == *this);
-        }
-
-        void Save(NJson::TJsonValue* options) const;
-        void Load(const NJson::TJsonValue& options);
-
-        TCpuOnlyOption<TVector<float>> PenaltiesForEachUse;
-        TCpuOnlyOption<float> PenaltiesCoefficient;
-        //TODO(taube): add more penalties
-    };
-
     class TObliviousTreeLearnerOptions {
     public:
         explicit TObliviousTreeLearnerOptions(ETaskType taskType);
