@@ -5,6 +5,7 @@
 
 #include <library/json/writer/json_value.h>
 
+#include <util/generic/map.h>
 #include <util/generic/strbuf.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
@@ -19,23 +20,9 @@ namespace NCatboostOptions {
         return NCB::FromJson<TFeatureOptionType>(option);
     }
 
-    static std::regex GetDenseFormatPattern(const TStringBuf featureOptionRegex) { // like: (1,0,0,-1,0)
-        TString patternStr = "^\\((";
-        patternStr += featureOptionRegex;
-        patternStr += ")(,(";
-        patternStr += featureOptionRegex;
-        patternStr += "))*\\)$";
-        return std::regex(patternStr.data());
-    }
+    std::regex GetDenseFormatPattern(const TStringBuf featureOptionRegex); // like: (1,0,0,-1,0)
 
-    static std::regex GetSparseFormatPattern(const TStringBuf featureOptionRegex) { // like: 0:1,3:-1 or FeatureName1:-1,FeatureName2:-1
-        TString patternStr = "^[^:,]+:(";
-        patternStr += featureOptionRegex;
-        patternStr += ")(,[^:,]+:(";
-        patternStr += featureOptionRegex;
-        patternStr += "))*$";
-        return std::regex(patternStr.data());
-    }
+    std::regex GetSparseFormatPattern(const TStringBuf featureOptionRegex); // like: 0:1,3:-1 or FeatureName1:-1,FeatureName2:-1
 
     template<typename TFeatureOptionType>
     TMap<TString, TFeatureOptionType> ParsePerFeatureOptionsFromString(const TString& options,

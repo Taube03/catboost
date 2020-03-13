@@ -20,10 +20,10 @@ namespace NCatboostOptions {
 
     static void LeaveOnlyNonTrivialOptions(TJsonValue* penaltiesJsonOptions) {
         TJsonValue nonTrivialOptions(EJsonValueType::JSON_MAP);
-        auto& optionsRefMap = penaltiesJsonOptions->GetMapSafe();
-        for (auto&& [feature, option] : optionsRefMap) {
+        const auto& optionsRefMap = penaltiesJsonOptions->GetMapSafe();
+        for (const auto& [feature, option] : optionsRefMap) {
             if (option.GetDoubleRobust() != 0) {
-                nonTrivialOptions[feature] = std::move(option);
+                nonTrivialOptions[feature] = option;
             }
         }
         *penaltiesJsonOptions = nonTrivialOptions;

@@ -726,6 +726,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
             CopyOption(penaltiesOptions, "penalties_coefficient", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyTreePenalties, "penalties_coefficient");
+
+            CB_ENSURE(optionsCopyTreePenalties.GetMapSafe().empty(), "penalties: key " + optionsCopyTreePenalties.GetMapSafe().begin()->first + " wasn't added to plain options.");
+            DeleteSeenOption(&optionsCopyTree, "penalties");
         }
 
         CB_ENSURE(optionsCopyTree.GetMapSafe().empty(), "tree_learner_options: key " + optionsCopyTree.GetMapSafe().begin()->first + " wasn't added to plain options.");

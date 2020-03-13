@@ -15,10 +15,10 @@ static constexpr auto constraintRegex = AsStringBuf("0|1|-1");
 
 static void LeaveOnlyNonTrivialConstraints(TJsonValue* monotoneConstraintsJsonOptions) {
     TJsonValue nonTrivialConstraints(EJsonValueType::JSON_MAP);
-    auto& constraintsRefMap = monotoneConstraintsJsonOptions->GetMapSafe();
-    for (auto&& [feature, constraint] : constraintsRefMap) {
+    const auto& constraintsRefMap = monotoneConstraintsJsonOptions->GetMapSafe();
+    for (const auto& [feature, constraint] : constraintsRefMap) {
         if (constraint.GetIntegerSafe() != 0) {
-            nonTrivialConstraints[feature] = std::move(constraint);
+            nonTrivialConstraints[feature] = constraint;
         }
     }
     *monotoneConstraintsJsonOptions = nonTrivialConstraints;
