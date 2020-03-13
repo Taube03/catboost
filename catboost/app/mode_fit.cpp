@@ -52,6 +52,7 @@ int mode_fit(int argc, const char* argv[]) {
     ConvertMonotoneConstraintsToCanonicalFormat(&catBoostJsonOptions);
     ConvertMonotoneConstraintsFromStringToIndices(poolLoadParams, &catBoostJsonOptions);
     NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(&catBoostJsonOptions);
+    ConvertAllFeaturePenaltiesFromStringToIndices(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputOptionsJson);
