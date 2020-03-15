@@ -2481,6 +2481,26 @@ def test_cv_with_save_snapshot(task_type):
         )
 
 
+def test_cv_small_data():
+    cv_data = [["France", 1924, 44],
+               ["USA", 1932, 37],
+               ["Switzerland", 1928, 25],
+               ["Norway", 1952, 30],
+               ["Japan", 1972, 35],
+               ["Mexico", 1968, 112]]
+    labels = [1, 1, 0, 0, 0, 1]
+    pool = Pool(data=cv_data,
+                label=labels,
+                cat_features=[0])
+    params = {
+        "iterations": 100,
+        "depth": 2,
+        "loss_function": "Logloss",
+        "verbose": False
+    }
+    cv(pool, params, fold_count=2)
+
+
 def test_grid_search_aliases(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
@@ -2504,6 +2524,52 @@ def test_grid_search_aliases(task_type):
     )
     for key, value in results["params"].iteritems():
         assert value in grid[key]
+
+
+def test_grid_search_and_get_best_result(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    for refit in [True, False]:
+        for search_by_train_test_split in [True, False]:
+            model = CatBoost(
+                {
+                    "loss_function": "Logloss",
+                    "eval_metric": "AUC",
+                    "task_type": task_type,
+                    "custom_metric": ["CrossEntropy", "F1"]
+                }
+            )
+            feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
+            one_hot_max_size_list = [4, 7, 10]
+            iterations_list = [5, 7, 10]
+            border_count_list = [4, 10, 50, 100]
+            model.grid_search(
+                {
+                    'feature_border_type': feature_border_type_list,
+                    'one_hot_max_size': one_hot_max_size_list,
+                    'iterations': iterations_list,
+                    'border_count': border_count_list
+                },
+                pool,
+                refit=refit,
+                search_by_train_test_split=search_by_train_test_split
+            )
+            best_scores = model.get_best_score()
+            if refit:
+                assert 'validation' not in best_scores, 'validation results found for refit=True'
+                assert 'learn' in best_scores, 'no train results found for refit=True'
+            elif search_by_train_test_split:
+                assert 'validation' in best_scores, 'no validation results found for refit=False, search_by_train_test_split=True'
+                assert 'learn' in best_scores, 'no train results found for refit=False, search_by_train_test_split=True'
+            else:
+                assert 'validation' not in best_scores, 'validation results found for refit=False, search_by_train_test_split=False'
+                assert 'learn' not in best_scores, 'train results found for refit=False, search_by_train_test_split=False'
+            if 'validation' in best_scores:
+                for metric in ["AUC", "Logloss", "CrossEntropy", "F1"]:
+                    assert metric in best_scores['validation'], 'no validation ' + metric + ' results found'
+            if 'learn' in best_scores:
+                for metric in ["Logloss", "CrossEntropy", "F1"]:
+                    assert metric in best_scores['learn'], 'no train ' + metric + ' results found'
+                assert "AUC" not in best_scores['learn'], 'train AUC results found'
 
 
 def test_grid_search(task_type):
@@ -2700,6 +2766,21 @@ def test_randomized_search_cv(task_type):
     assert results['params']['one_hot_max_size'] in range(20)
     assert results['params']['border_count'] in [10, 6, 20, 4]
     assert results['params']['iterations'] in [1, 2, 3]
+
+
+def test_grid_search_with_class_weights_lists():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=10)
+    grid = {
+        'learning_rate': [0.03, 0.1],
+        'depth': [4, 6, 8],
+        'l2_leaf_reg': [1, 3, 5, 7],
+        'class_weights': [[1, 2], [1, 3]]
+    }
+
+    results = model.grid_search(grid, pool, shuffle=False, verbose=False)
+    for key, value in results["params"].iteritems():
+        assert value in grid[key]
 
 
 def test_grid_search_wrong_param_type(task_type):
@@ -2904,7 +2985,7 @@ def test_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
     model = CatBoost(
         {
-            "iterations": 5,
+            "iterations": 20,
             "learning_rate": 0.03,
             "task_type": task_type,
             "devices": "0",
@@ -2915,9 +2996,12 @@ def test_shap_feature_importance_ranking(task_type):
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
 
-    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
-    return local_canonical_file(fimp_npy_path)
+    if task_type == 'GPU':
+        return pytest.xfail(reason="On GPU models with loss Pairlogit are too unstable. MLTOOLS-4722")
+    else:
+        fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+        np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+        return local_canonical_file(fimp_npy_path)
 
 
 def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
@@ -4429,6 +4513,57 @@ def test_no_fail_if_metric_is_repeated_cv(task_type, metrics):
     cv(train_pool, **cv_params)
 
 
+IGNORED_FEATURES_DATA_TYPES = ['integer', 'string']
+
+
+@pytest.mark.parametrize(
+    'data_type',
+    IGNORED_FEATURES_DATA_TYPES,
+    ids=['data_type=' + data_type for data_type in IGNORED_FEATURES_DATA_TYPES]
+)
+@pytest.mark.parametrize(
+    'has_missing',
+    [False, True],
+    ids=['has_missing=%s' % has_missing for has_missing in [False, True]]
+)
+def test_cv_with_ignored_features(task_type, data_type, has_missing):
+    pool = Pool(TRAIN_FILE, column_description=data_file('adult', 'train_with_id.cd'))
+
+    if (data_type, has_missing) == ('integer', False):
+        ignored_features = [0, 2, 5]
+    elif (data_type, has_missing) == ('integer', True):
+        ignored_features = [0, 2, 5, 23, 100]
+    elif (data_type, has_missing) == ('string', False):
+        ignored_features = ['C6', 'C9', 'F4', 'F5']
+    elif (data_type, has_missing) == ('string', True):
+        return pytest.xfail(reason="Not working at the moment. TODO(akhropov): MLTOOLS-4783")
+        # ignored_features = ['C6', 'C9', 'F4', 'F5', 'F17', 'F20']
+    else:
+        raise Exception('bad params: data_type=%s, has_missing=%s' % (data_type, has_missing))
+
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+            "ignored_features": ignored_features
+        },
+    )
+    assert "train-Logloss-mean" in results
+
+    prev_value = results["train-Logloss-mean"][0]
+    for value in results["train-Logloss-mean"][1:]:
+        assert value < prev_value
+        prev_value = value
+
+    # Unfortunately, for GPU results differ too much between different GPU models.
+    if task_type != 'GPU':
+        return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
 def test_use_last_testset_for_best_iteration():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -5799,10 +5934,51 @@ def test_continue_learning_with_changing_params(problem_type, param_set):
     return canonical_files
 
 
-def test_continue_learning_with_changing_dataset():
-    train_df = read_csv(TRAIN_FILE, header=None, delimiter='\t')
-    train_labels = Series(train_df.iloc[:, TARGET_IDX])
-    train_df.drop([TARGET_IDX], axis=1, inplace=True)
+SAMPLES_AND_FEATURES_FOR_CONTINUATION = [
+    ('same', 'more'),
+    ('more', 'same'),
+    ('new', 'same'),
+    ('more', 'more'),
+    ('new', 'more'),
+]
+
+
+@pytest.mark.parametrize(
+    'samples,features',
+    SAMPLES_AND_FEATURES_FOR_CONTINUATION,
+    ids=[
+        'samples=%s,features=%s' % (samples, features)
+        for (samples, features) in SAMPLES_AND_FEATURES_FOR_CONTINUATION
+    ]
+)
+def test_continue_learning_with_changing_dataset(samples, features):
+    all_df = read_csv(TRAIN_FILE, header=None, delimiter='\t')
+    all_labels = Series(all_df.iloc[:, TARGET_IDX])
+    all_df.drop([TARGET_IDX], axis=1, inplace=True)
+    all_features_df = all_df
+
+    if samples == 'same':
+        features_df_1 = all_features_df.copy()
+        labels_1 = all_labels.copy()
+        features_df_2 = all_features_df
+        labels_2 = all_labels
+    elif samples == 'more':
+        features_df_1 = all_features_df.head(70).copy()
+        labels_1 = all_labels.head(70).copy()
+        features_df_2 = all_features_df
+        labels_2 = all_labels
+    elif samples == 'new':
+        features_df_1 = all_features_df.head(60).copy()
+        labels_1 = all_labels.head(60).copy()
+        features_df_2 = all_features_df.tail(len(all_features_df) - 60).copy()
+        labels_2 = all_labels.tail(len(all_features_df) - 60).copy()
+
+    if features == 'more':
+        features_df_1.drop(features_df_1.columns[-5:], axis=1, inplace=True)
+        cat_features_1 = filter(lambda i: i < len(features_df_1.columns), CAT_FEATURES)
+    else:
+        cat_features_1 = CAT_FEATURES
+    cat_features_2 = CAT_FEATURES
 
     train_params = {
         'task_type': 'CPU',  # TODO(akhropov): GPU support
@@ -5811,15 +5987,16 @@ def test_continue_learning_with_changing_dataset():
         'learning_rate': 0.3  # fixed, because automatic value depends on number of iterations
     }
 
-    def train_model(train_features_df, train_labels, iterations, init_model=None):
+    def train_model(train_features_df, train_labels, cat_features, iterations, init_model=None):
         local_params = train_params
         local_params['iterations'] = iterations
         model = CatBoost(local_params)
-        model.fit(X=train_features_df, y=train_labels, cat_features=CAT_FEATURES, init_model=init_model)
+        print ('cat_features', cat_features)
+        model.fit(X=train_features_df, y=train_labels, cat_features=cat_features, init_model=init_model)
         return model
 
-    model1 = train_model(train_df.head(70), train_labels.head(70), iterations=5)
-    model2 = train_model(train_df, train_labels, iterations=4, init_model=model1)
+    model1 = train_model(features_df_1, labels_1, cat_features_1, iterations=5)
+    model2 = train_model(features_df_2, labels_2, cat_features_2, iterations=4, init_model=model1)
 
     pred = model2.predict(Pool(TEST_FILE, column_description=CD_FILE))
     preds_path = test_output_path(PREDS_TXT_PATH)

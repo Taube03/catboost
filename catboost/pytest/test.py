@@ -4869,7 +4869,7 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
 
     eval_0 = np.loadtxt(eval_0_path, dtype='float', delimiter='\t', skiprows=1)
     eval_1 = np.loadtxt(eval_1_path, dtype='float', delimiter='\t', skiprows=1)
-    assert(np.allclose(eval_0, eval_1, atol=1e-6, rtol=1e-3))
+    assert(np.allclose(eval_0, eval_1, atol=1e-5))
     return eval_1_path
 
 
@@ -8516,3 +8516,15 @@ def test_model_shrink_incorrect(config):
     ]
     with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize('average', ['Macro', 'Micro', 'Weighted'])
+def test_total_f1_params(average):
+    return do_test_eval_metrics(
+        metric='TotalF1:average=' + average,
+        metric_period='1',
+        train=data_file('cloudness_small', 'train_small'),
+        test=data_file('cloudness_small', 'test_small'),
+        cd=data_file('cloudness_small', 'train.cd'),
+        loss_function='MultiClass'
+    )

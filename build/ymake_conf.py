@@ -1058,6 +1058,11 @@ class GnuToolchain(Toolchain):
         if target.is_armv7_neon:
             self.c_flags_platform.append('-mfpu=neon')
 
+        if target.is_arm or target.is_ppc64le:
+            # On linux, ARM and PPC default to unsigned char
+            # However, Arcadia requires char to be signed
+            self.c_flags_platform.append('-fsigned-char')
+
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
@@ -1075,12 +1080,6 @@ class GnuToolchain(Toolchain):
 
             if target.is_ios:
                 self.c_flags_platform.append('-D__IOS__=1')
-
-            if target.is_android:
-                self.c_flags_platform.append('-fsigned-char')
-
-            if target.is_armv7:
-                self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
                 if target.is_apple:
@@ -1478,7 +1477,7 @@ class Linker(object):
         self.tc = tc
         self.build = build
         if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
-            if self.tc.is_clang and not (is_positive('USE_LTO') or self.build.target.is_linux_armv8 or self.build.target.is_ppc64le):  # TODO: try to enable PPC64 with LLD>=6
+            if self.tc.is_clang:
                 self.type = Linker.LLD
             elif self.tc.is_gcc and (self.build.target.is_linux_armv7 or self.build.target.is_yocto_lg_wk7y or self.build.target.is_yocto_jbl_portable_music or self.build.target.is_yocto_aacrh64_lightcomm_mt8516):
                 self.type = Linker.BFD
@@ -1628,7 +1627,7 @@ class LD(Linker):
             self.use_stdlib = '-nodefaultlibs'
             self.soname_option = '-install_name'
             if not preset('NO_DEBUGINFO'):
-                self.dwarf_command = '$DWARF_TOOL $TARGET -o ${output;pre=$REALPRJNAME.dSYM/Contents/Resources/DWARF/:REALPRJNAME}'
+                self.dwarf_command = '$DWARF_TOOL $TARGET -o ${output;pre=$MODULE_PREFIX$REALPRJNAME.dSYM/Contents/Resources/DWARF/$MODULE_PREFIX:REALPRJNAME}'
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
@@ -1857,7 +1856,7 @@ class MSVCToolchainOptions(ToolchainOptions):
 
         else:
             self.sdk_version = '10.0.16299.0'
-            sdk_dir = '$(WINDOWS_KITS-sbr:883703503)'
+            sdk_dir = '$(WINDOWS_KITS-sbr:1379398385)'
 
             self.vc_root = self.name_marker if not self.use_clang else '$MSVC_FOR_CLANG_RESOURCE_GLOBAL'
             self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)

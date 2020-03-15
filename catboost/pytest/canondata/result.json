@@ -525,13 +525,13 @@
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=5000000-1Kb-Ordered]": [
         {
-            "checksum": "c990000ce337b8c6220ec5ba29cfd69b",
+            "checksum": "4bb6ec68453a0fb2c2552d37fcc0ebe7",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=5000000-1Kb-Ordered_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=5000000-1Kb-Plain]": [
         {
-            "checksum": "55ee471657c4124a97d68d7bec45a552",
+            "checksum": "b6ecde0a927bd23e054d5c1f61861441",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=5000000-1Kb-Plain_/test.eval"
         }
     ],
@@ -549,13 +549,13 @@
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=600-1Kb-Ordered]": [
         {
-            "checksum": "c990000ce337b8c6220ec5ba29cfd69b",
+            "checksum": "4bb6ec68453a0fb2c2552d37fcc0ebe7",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=600-1Kb-Ordered_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=600-1Kb-Plain]": [
         {
-            "checksum": "55ee471657c4124a97d68d7bec45a552",
+            "checksum": "b6ecde0a927bd23e054d5c1f61861441",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=600-1Kb-Plain_/test.eval"
         }
     ],
@@ -7655,19 +7655,19 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-Lq:q=1.5]": [
         {
-            "checksum": "b82fb001f2303780588f692d46b5b2fb",
+            "checksum": "32cf7ba06203b9363aa62fb0139eb8ca",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Lq_q=1.5_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-Lq:q=1]": [
         {
-            "checksum": "9f2ead951beeb5073e827190256424c6",
+            "checksum": "f345b5d2f26db842128d7f449fcd7227",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Lq_q=1_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-Lq:q=3]": [
         {
-            "checksum": "9586cb18783f1ae0febdc29b89c2e0dd",
+            "checksum": "1ca53325b9a19c73bda4c7cd5430a8c1",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Lq_q=3_/test.eval"
         }
     ],
@@ -7715,19 +7715,19 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-Lq:q=1.5]": [
         {
-            "checksum": "581d4ff18f656e96010d9a31f0877f18",
+            "checksum": "8dbc2130de8f0c637a328933173de8cd",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Lq_q=1.5_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-Lq:q=1]": [
         {
-            "checksum": "a7b4de1fb8c36a25bbeffbe4f76ebea2",
+            "checksum": "6e7d2dce557c8e21aeedac5ad3554cf0",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Lq_q=1_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-Lq:q=3]": [
         {
-            "checksum": "0360b67b1a5bdce5f4b52bb949829af4",
+            "checksum": "5e386a9ebb4c482ef5b59ef735dba21e",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Lq_q=3_/test.eval"
         }
     ],
@@ -7775,19 +7775,19 @@
     ],
     "test.test_reg_targets[calc_block=60-Ordered-Lq:q=1.5]": [
         {
-            "checksum": "b82fb001f2303780588f692d46b5b2fb",
+            "checksum": "32cf7ba06203b9363aa62fb0139eb8ca",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Lq_q=1.5_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=60-Ordered-Lq:q=1]": [
         {
-            "checksum": "9f2ead951beeb5073e827190256424c6",
+            "checksum": "f345b5d2f26db842128d7f449fcd7227",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Lq_q=1_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=60-Ordered-Lq:q=3]": [
         {
-            "checksum": "9586cb18783f1ae0febdc29b89c2e0dd",
+            "checksum": "1ca53325b9a19c73bda4c7cd5430a8c1",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Lq_q=3_/test.eval"
         }
     ],
@@ -7835,19 +7835,19 @@
     ],
     "test.test_reg_targets[calc_block=60-Plain-Lq:q=1.5]": [
         {
-            "checksum": "581d4ff18f656e96010d9a31f0877f18",
+            "checksum": "8dbc2130de8f0c637a328933173de8cd",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-Lq_q=1.5_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=60-Plain-Lq:q=1]": [
         {
-            "checksum": "a7b4de1fb8c36a25bbeffbe4f76ebea2",
+            "checksum": "6e7d2dce557c8e21aeedac5ad3554cf0",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-Lq_q=1_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=60-Plain-Lq:q=3]": [
         {
-            "checksum": "0360b67b1a5bdce5f4b52bb949829af4",
+            "checksum": "5e386a9ebb4c482ef5b59ef735dba21e",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-Lq_q=3_/test.eval"
         }
     ],
@@ -8527,6 +8527,24 @@
         {
             "checksum": "7e1f25371d18c5f1fa356a8972aa8d7b",
             "uri": "file://test.test_yetirank_with_params_calc_block=60-Plain_/test.eval"
+        }
+    ],
+    "test.test_total_f1_params[Macro]": [
+        {
+            "checksum": "45a9b213724dc657f87b870a7a8cbc2f",
+            "uri": "file://test.test_total_f1_params_Macro_/output.tsv"
+        }
+    ],
+    "test.test_total_f1_params[Micro]": [
+        {
+            "checksum": "28a6a10121980e4265dead082bfb8aaa",
+            "uri": "file://test.test_total_f1_params_Micro_/output.tsv"
+        }
+    ],
+    "test.test_total_f1_params[Weighted]": [
+        {
+            "checksum": "83d2ee81fbf69f10ac2de97a34626e99",
+            "uri": "file://test.test_total_f1_params_Weighted_/output.tsv"
         }
     ]
 }
