@@ -3508,6 +3508,9 @@ class CatBoostClassifier(CatBoost):
 
     monotone_constraints : list or numpy.ndarray or string or dict, [default=None]
         Monotone constraints for features.
+        
+    penalties_for_each_use : list or numpy.ndarray or string or dict, [default=None]
+        Penalty for each use of feature in model.
 
     sampling_frequency : string, [default=PerTree]
         Frequency to sample weights and objects when building trees.
@@ -3775,6 +3778,7 @@ class CatBoostClassifier(CatBoost):
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
         monotone_constraints=None,
+        penalties_for_each_use=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
         langevin=None,
@@ -4325,6 +4329,7 @@ class CatBoostRegressor(CatBoost):
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
         monotone_constraints=None,
+        penalties_for_each_use=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
         langevin=None,

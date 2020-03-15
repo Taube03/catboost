@@ -882,6 +882,14 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler0([plainJsonPtr]() {
             (*plainJsonPtr)["dev_leafwise_approxes"] = true;
         });
+
+    parser
+        .AddLongOption("penalties_for_each_use")
+        .RequiredArgument("String")
+        .Help("Penalties for each use of feature. Possible formats: \"(1,0,0,-1)\" or \"0:1,3:-1\" or \"FeatureName1:1,FeatureName2:-1\"")
+        .Handler1T<TString>([plainJsonPtr](const TString& penaltiesForEachUse) {
+            (*plainJsonPtr)["penalties_for_each_use"] = penaltiesForEachUse;
+        });
 }
 
 static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
