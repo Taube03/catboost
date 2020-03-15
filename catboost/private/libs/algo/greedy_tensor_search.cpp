@@ -607,7 +607,7 @@ static inline float GetPenalty(
 ) {
     const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
     auto it = penalties.find(externalFeatureIndex);
-    return (it != penalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_PENALTY);
+    return -(it != penalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_PENALTY);
 }
 
 static float GetSplitFeaturePenalty(
