@@ -19,7 +19,7 @@ namespace NCatboostOptions {
     public:
         TFeaturePenaltiesOptions()
             : PenaltiesForEachUse("penalties_for_each_use", {}, ETaskType::CPU)
-            , PenaltiesCoefficient("penalties_coefficient", {}, ETaskType::CPU)
+            , PenaltiesCoefficient("penalties_coefficient", 1, ETaskType::CPU)
         {
         }
 
