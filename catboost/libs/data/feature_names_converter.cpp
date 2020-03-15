@@ -157,17 +157,6 @@ static inline void ConvertPerFeatureOptionsFromStringToIndices(const NCB::TDataM
     ConvertPerFeatureOptionsFromStringToIndices(MakeIndicesFromNames(metaInfo), options);
 }
 
-ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
-    if (IsNumber(nameOrIndex)) {
-        return FromString<ui32>(nameOrIndex);
-    } else {
-        CB_ENSURE(
-            indicesFromNames.contains(nameOrIndex),
-            "String " + nameOrIndex + " is not a feature name");
-        return indicesFromNames.at(nameOrIndex);
-    }
-}
-
 static inline void ConvertPerFeatureOptionsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* options) {
     ConvertPerFeatureOptionsFromStringToIndices(MakeIndicesFromNames(poolLoadParams), options);
 }
@@ -215,6 +204,17 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const NCatboostOptions::TPool
 
     if (penaltiesRef.Has("penalties_for_each_use")) {
         ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["penalties_for_each_use"]);
+    }
+}
+
+ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
+    if (IsNumber(nameOrIndex)) {
+        return FromString<ui32>(nameOrIndex);
+    } else {
+        CB_ENSURE(
+            indicesFromNames.contains(nameOrIndex),
+            "String " + nameOrIndex + " is not a feature name");
+        return indicesFromNames.at(nameOrIndex);
     }
 }
 
