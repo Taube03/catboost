@@ -248,6 +248,10 @@
         "leaf_estimation_backtracking" : "AnyImprovement",
         "rsm" : 1,
         "dev_leafwise_approxes" : false,
+        "penalties" : {
+            "penalties_coefficient" : 1,
+            "penalties_for_each_use" : { }
+        },
         "leaf_estimation_iterations" : 1,
         "sparse_features_conflict_fraction" : 0
     },
