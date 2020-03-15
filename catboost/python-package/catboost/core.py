@@ -1463,6 +1463,9 @@ def _check_param_types(params):
     if 'monotone_constraints' in params:
         if not isinstance(params['monotone_constraints'], STRING_TYPES + ARRAY_TYPES + (dict,)):
             raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
+    if 'penalties_for_each_use' in params:
+        if not isinstance(params['penalties_for_each_use'], STRING_TYPES + ARRAY_TYPES + (dict,)):
+            raise CatBoostError("Invalid `penalties_for_each_use` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
 
 
 def _params_type_cast(params):
@@ -3508,6 +3511,9 @@ class CatBoostClassifier(CatBoost):
 
     monotone_constraints : list or numpy.ndarray or string or dict, [default=None]
         Monotone constraints for features.
+    
+    penalties_coefficient : float, [default=1]
+        Common coefficient for all penalties.
         
     penalties_for_each_use : list or numpy.ndarray or string or dict, [default=None]
         Penalty for each use of feature in model.
@@ -3778,6 +3784,7 @@ class CatBoostClassifier(CatBoost):
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
         monotone_constraints=None,
+        penalties_coefficient=None,
         penalties_for_each_use=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
@@ -4329,6 +4336,7 @@ class CatBoostRegressor(CatBoost):
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
         monotone_constraints=None,
+        penalties_coefficient=None,
         penalties_for_each_use=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
