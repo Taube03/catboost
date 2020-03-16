@@ -7108,3 +7108,24 @@ def test_to_regressor_wrong_type():
     model.fit(train_pool)
     with pytest.raises(CatBoostError):
         to_regressor(model)
+
+def test_feature_penalties_work():
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'devices': '0',
+        'loss_function': 'MultiClass',
+    }
+
+    model_without_penalties = CatBoostClassifier(**classifier_params)
+    model_without_penalties.fit(pool)
+    importance_without_penalties = model_without_penalties.get_feature_importance(type=EFstrType.PredictionValuesChange, data=pool)[most_important_feature_index]
+
+    model_with_penalties = CatBoostClassifier(penalties_for_each_use={most_important_feature_index: 10}, **classifier_params)
+    model_with_penalties.fit(pool)
+    importance_with_penalties = model_with_penalties.get_feature_importance(type=EFstrType.PredictionValuesChange, data=pool)[most_important_feature_index]
+
+    assert importance_with_penalties < importance_without_penalties
