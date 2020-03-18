@@ -1232,6 +1232,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             ProcessCtrSplit(data, bestSplit, fold, ctx);
         }
+        MarkFeaturesAsUsed(bestSplit, *ctx->Layout, &ctx->LearnProgress->UsedFeatures);
+
         const auto& node = currentStructure.AddSplit(bestSplit, curSplitLeaf.Leaf);
         const TIndexType splittedNodeIdx = curSplitLeaf.Leaf;
         const TIndexType leftChildIdx = ~node.Left;
@@ -1327,6 +1329,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             if (bestSplit.Type == ESplitType::OnlineCtr) {
                 ProcessCtrSplit(data, bestSplit, fold, ctx);
             }
+            MarkFeaturesAsUsed(bestSplit, *ctx->Layout, &ctx->LearnProgress->UsedFeatures);
+
             const auto& node = currentStructure.AddSplit(bestSplit, leafToSplit);
             const TIndexType leftChildIdx = ~node.Left;
             const TIndexType rightChildIdx = ~node.Right;
