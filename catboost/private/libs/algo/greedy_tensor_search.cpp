@@ -599,7 +599,7 @@ static void SelectCtrsToDropAfterCalc(
     }
 }
 
-static inline float GetPenalty(
+static inline float GetFeatureWeight(
     const NCatboostOptions::TPerFeaturePenalty& penalties,
     const TFeaturesLayout& layout,
     const ui32 internalFeatureIndex,
@@ -607,54 +607,51 @@ static inline float GetPenalty(
 ) {
     const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
     auto it = penalties.find(externalFeatureIndex);
-    return -(it != penalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_PENALTY);
+    return (it != penalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_PENALTY);
 }
 
-static float GetSplitFeaturePenalty(
+static float GetSplitFeatureWeight(
     const TSplit& split,
     const TFeaturesLayout& layout,
-    const NCatboostOptions::TPerFeaturePenalty& penaltiesForEachUse,
-    const float penaltiesCoefficient
+    const NCatboostOptions::TPerFeaturePenalty& penaltiesForEachUse
 ) {
-    float result = 0;
+    float result = 1;
     if (split.Type == ESplitType::FloatFeature) {
         Y_ASSERT(split.FeatureIdx != -1);
-        result = GetPenalty(penaltiesForEachUse, layout, split.FeatureIdx, EFeatureType::Float);
+        result *= GetFeatureWeight(penaltiesForEachUse, layout, split.FeatureIdx, EFeatureType::Float);
     } else if (split.Type == ESplitType::OneHotFeature) {
         Y_ASSERT(split.FeatureIdx != -1);
-        result = GetPenalty(penaltiesForEachUse, layout, split.FeatureIdx, EFeatureType::Categorical);
+        result *= GetFeatureWeight(penaltiesForEachUse, layout, split.FeatureIdx, EFeatureType::Categorical);
     } else if (split.Type == ESplitType::OnlineCtr) {
         for (const int floatFeatureIdx : split.Ctr.Projection.CatFeatures) {
-            result += GetPenalty(penaltiesForEachUse, layout, floatFeatureIdx, EFeatureType::Categorical);
+            result *= GetFeatureWeight(penaltiesForEachUse, layout, floatFeatureIdx, EFeatureType::Categorical);
         }
         for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
-            result += GetPenalty(penaltiesForEachUse, layout, binFeature.FloatFeature, EFeatureType::Float);
+            result *= GetFeatureWeight(penaltiesForEachUse, layout, binFeature.FloatFeature, EFeatureType::Float);
         }
         for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
-            result += GetPenalty(penaltiesForEachUse, layout, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
+            result *= GetFeatureWeight(penaltiesForEachUse, layout, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
         }
     } else {
         Y_ASSERT(false); //Another types are not supported in CPU
     }
 
-    result *= penaltiesCoefficient;
     return result;
 }
 
 static void AddFeaturePenalties(
     const NCatboostOptions::TPerFeaturePenalty& penaltiesForEachUse,
-    const float penaltiesCoefficient,
+    const float /*penaltiesCoefficient*/, //will be in use with feature penalties
     const TFeaturesLayout& layout,
     const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize,
     TCandidateInfo* cand
 ) {
     double& score = cand->BestScore.Val;
-    score += GetSplitFeaturePenalty(
+    score *= GetSplitFeatureWeight(
         cand->GetBestSplit(objectsData, oneHotMaxSize),
         layout,
-        penaltiesForEachUse,
-        penaltiesCoefficient
+        penaltiesForEachUse
     );
 }
 

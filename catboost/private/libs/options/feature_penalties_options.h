@@ -11,7 +11,7 @@ namespace NJson {
 }
 
 namespace NCatboostOptions {
-    constexpr float DEFAULT_FEATURE_PENALTY = 0;
+    constexpr float DEFAULT_FEATURE_PENALTY = 1;
 
     using TPerFeaturePenalty = TMap<ui32, float>;
 
