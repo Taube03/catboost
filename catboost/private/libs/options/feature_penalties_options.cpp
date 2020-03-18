@@ -30,7 +30,7 @@ namespace NCatboostOptions {
     }
 
     static void ConvertFeaturePenaltiesToCanonicalFormat(NJson::TJsonValue* featurePenaltiesJsonOptions) {
-        ConvertFeatureOptionsToCanonicalFormat<int>(floatRegex, featurePenaltiesJsonOptions);
+        ConvertFeatureOptionsToCanonicalFormat<float>(floatRegex, featurePenaltiesJsonOptions);
         LeaveOnlyNonTrivialOptions(featurePenaltiesJsonOptions);
     }
 
