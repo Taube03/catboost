@@ -7165,11 +7165,11 @@ def test_different_formats_of_feature_weights():
     train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
 
-    feature_weights_array = np.array([0, 0, 0, 0.1, 0, 0, 0, 2])
-    feature_weights_list = [0, 0, 0, 0.1, 0, 0, 0, 2]
+    feature_weights_array = np.array([1, 1, 1, 0.1, 1, 1, 1, 2])
+    feature_weights_list = [1, 1, 1, 0.1, 1, 1, 1, 2]
     feature_weights_dict_1 = {3: 0.1, 7: 2}
     feature_weights_dict_2 = {'DepTime': 0.1, 'Distance': 2}
-    feature_weights_string_1 = "(0,0,0,0.1,0,0,0,2)"
+    feature_weights_string_1 = "(1,1,1,0.1,1,1,1,2)"
     feature_weights_string_2 = "3:0.1,7:2"
     feature_weights_string_3 = "DepTime:0.1,Distance:2"
 
@@ -7189,4 +7189,3 @@ def test_different_formats_of_feature_weights():
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
-    

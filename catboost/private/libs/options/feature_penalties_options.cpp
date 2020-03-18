@@ -18,20 +18,20 @@ namespace NCatboostOptions {
 
     static constexpr auto floatRegex = AsStringBuf("([0-9]+([.][0-9]*)?|[.][0-9]+)");
 
-    static void LeaveOnlyNonTrivialOptions(TJsonValue* penaltiesJsonOptions) {
+    static void LeaveOnlyNonTrivialOptions(const float defaultValue, TJsonValue* penaltiesJsonOptions) {
         TJsonValue nonTrivialOptions(EJsonValueType::JSON_MAP);
         const auto& optionsRefMap = penaltiesJsonOptions->GetMapSafe();
         for (const auto& [feature, option] : optionsRefMap) {
-            if (option.GetDoubleRobust() != 0) {
+            if (option.GetDoubleRobust() != defaultValue) {
                 nonTrivialOptions[feature] = option;
             }
         }
         *penaltiesJsonOptions = nonTrivialOptions;
     }
 
-    static void ConvertFeaturePenaltiesToCanonicalFormat(NJson::TJsonValue* featurePenaltiesJsonOptions) {
+    static void ConvertFeaturePenaltiesToCanonicalFormat(const float defaultValue, NJson::TJsonValue* featurePenaltiesJsonOptions) {
         ConvertFeatureOptionsToCanonicalFormat<float>(floatRegex, featurePenaltiesJsonOptions);
-        LeaveOnlyNonTrivialOptions(featurePenaltiesJsonOptions);
+        LeaveOnlyNonTrivialOptions(defaultValue, featurePenaltiesJsonOptions);
     }
 
     void ConvertAllFeaturePenaltiesToCanonicalFormat(NJson::TJsonValue* catBoostJsonOptions) {
@@ -42,7 +42,7 @@ namespace NCatboostOptions {
 
         TJsonValue& penaltiesRef = treeOptions["penalties"];
         if (penaltiesRef.Has("feature_weights")) {
-            ConvertFeaturePenaltiesToCanonicalFormat(&penaltiesRef["feature_weights"]);
+            ConvertFeaturePenaltiesToCanonicalFormat(DEFAULT_FEATURE_WEIGHT, &penaltiesRef["feature_weights"]);
         }
     }
 }
