@@ -599,15 +599,15 @@ static void SelectCtrsToDropAfterCalc(
     }
 }
 
-static inline float GetFeatureWeight(
-    const NCatboostOptions::TPerFeaturePenalty& featureWeights,
+static inline float GetFeaturePenalty(
+    const NCatboostOptions::TPerFeaturePenalty& featurePenalties,
     const TFeaturesLayout& layout,
     const ui32 internalFeatureIndex,
     const EFeatureType type
 ) {
     const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
-    auto it = featureWeights.find(externalFeatureIndex);
-    return (it != featureWeights.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_WEIGHT);
+    auto it = featurePenalties.find(externalFeatureIndex);
+    return (it != featurePenalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_WEIGHT);
 }
 
 static float GetSplitFeatureWeight(
@@ -618,19 +618,19 @@ static float GetSplitFeatureWeight(
     float result = 1;
     if (split.Type == ESplitType::FloatFeature) {
         Y_ASSERT(split.FeatureIdx != -1);
-        result *= GetFeatureWeight(featureWeights, layout, split.FeatureIdx, EFeatureType::Float);
+        result *= GetFeaturePenalty(featureWeights, layout, split.FeatureIdx, EFeatureType::Float);
     } else if (split.Type == ESplitType::OneHotFeature) {
         Y_ASSERT(split.FeatureIdx != -1);
-        result *= GetFeatureWeight(featureWeights, layout, split.FeatureIdx, EFeatureType::Categorical);
+        result *= GetFeaturePenalty(featureWeights, layout, split.FeatureIdx, EFeatureType::Categorical);
     } else if (split.Type == ESplitType::OnlineCtr) {
-        for (const int floatFeatureIdx : split.Ctr.Projection.CatFeatures) {
-            result *= GetFeatureWeight(featureWeights, layout, floatFeatureIdx, EFeatureType::Categorical);
+        for (const int catFeatureIdx : split.Ctr.Projection.CatFeatures) {
+            result *= GetFeaturePenalty(featureWeights, layout, catFeatureIdx, EFeatureType::Categorical);
         }
         for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
-            result *= GetFeatureWeight(featureWeights, layout, binFeature.FloatFeature, EFeatureType::Float);
+            result *= GetFeaturePenalty(featureWeights, layout, binFeature.FloatFeature, EFeatureType::Float);
         }
         for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
-            result *= GetFeatureWeight(featureWeights, layout, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
+            result *= GetFeaturePenalty(featureWeights, layout, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
         }
     } else {
         Y_ASSERT(false); //Another types are not supported in CPU
@@ -639,17 +639,77 @@ static float GetSplitFeatureWeight(
     return result;
 }
 
+static inline float GetFeatureFirstUsePenalty(
+    const NCatboostOptions::TPerFeaturePenalty& featurePenalties,
+    const TFeaturesLayout& layout,
+    const TVector<bool>& usedFeatures,
+    const ui32 internalFeatureIndex,
+    const EFeatureType type
+) {
+    const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
+    float result = NCatboostOptions::DEFAULT_FEATURE_PENALTY;
+    if (!usedFeatures[externalFeatureIndex]) {
+        auto it = featurePenalties.find(externalFeatureIndex);
+        if (it != featurePenalties.end()) {
+            result = it->second;
+        }
+    }
+    return result;
+}
+
+static float GetSplitFirstFeatureUsePenalty(
+    const TSplit& split,
+    const TFeaturesLayout& layout,
+    const TVector<bool>& usedFeatures,
+    const NCatboostOptions::TPerFeaturePenalty& featurePenalties,
+    const float penaltiesCoefficient
+) {
+    float result = 0;
+    if (split.Type == ESplitType::FloatFeature) {
+        Y_ASSERT(split.FeatureIdx != -1);
+        result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, split.FeatureIdx, EFeatureType::Float);
+    } else if (split.Type == ESplitType::OneHotFeature) {
+        Y_ASSERT(split.FeatureIdx != -1);
+        result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, split.FeatureIdx, EFeatureType::Categorical);
+    } else if (split.Type == ESplitType::OnlineCtr) {
+        for (const int catFeatureIdx : split.Ctr.Projection.CatFeatures) {
+            result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, catFeatureIdx, EFeatureType::Categorical);
+        }
+        for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
+            result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, binFeature.FloatFeature, EFeatureType::Float);
+        }
+        for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
+            result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
+        }
+    } else {
+        Y_ASSERT(false); //Another types are not supported in CPU
+    }
+
+    result *= penaltiesCoefficient;
+    return result;
+}
+
 static void AddFeaturePenalties(
     const NCatboostOptions::TPerFeaturePenalty& featureWeights,
-    const float /*penaltiesCoefficient*/, //will be in use with feature penalties
+    const float penaltiesCoefficient,
+    const NCatboostOptions::TPerFeaturePenalty& firstFeatureUsePenalty,
     const TFeaturesLayout& layout,
+    const TVector<bool>& usedFeatures,
     const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize,
     TCandidateInfo* cand
 ) {
     double& score = cand->BestScore.Val;
+    const auto bestSplit = cand->GetBestSplit(objectsData, oneHotMaxSize);
+    score -= GetSplitFirstFeatureUsePenalty(
+        bestSplit,
+        layout,
+        usedFeatures,
+        firstFeatureUsePenalty,
+        penaltiesCoefficient
+    );
     score *= GetSplitFeatureWeight(
-        cand->GetBestSplit(objectsData, oneHotMaxSize),
+        bestSplit,
         layout,
         featureWeights
     );
@@ -738,7 +798,9 @@ static void CalcBestScore(
                 AddFeaturePenalties(
                     ctx->Params.ObliviousTreeOptions->FeaturePenalties->FeatureWeights,
                     ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient,
+                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->FirstFeatureUsePenalty,
                     *ctx->Layout,
+                    ctx->LearnProgress->UsedFeatures,
                     *data.Learn->ObjectsData,
                     candidatesContext->OneHotMaxSize,
                     &candidate.Candidates[subcandidateIdx]
@@ -827,7 +889,9 @@ static void CalcBestScoreLeafwise(
                 AddFeaturePenalties(
                     ctx->Params.ObliviousTreeOptions->FeaturePenalties->FeatureWeights,
                     ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient,
+                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->FirstFeatureUsePenalty,
                     *ctx->Layout,
+                    ctx->LearnProgress->UsedFeatures,
                     *data.Learn->ObjectsData,
                     candidatesContext->OneHotMaxSize,
                     &candidate.Candidates[subcandidateIdx]
@@ -1006,6 +1070,40 @@ static void ProcessCtrSplit(
     }
 }
 
+static void MarkFeaturesAsUsed(
+    const TSplit& split,
+    const TFeaturesLayout& layout,
+    TVector<bool>* usedFeatures
+) {
+    const auto markFeatureAsUsed = [&layout, usedFeatures](const int internalFeatureIndex, const EFeatureType type) {
+        const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
+        (*usedFeatures)[externalFeatureIndex] = true;
+    };
+
+    if (split.Type == ESplitType::FloatFeature) {
+        Y_ASSERT(split.FeatureIdx != -1);
+        markFeatureAsUsed(split.FeatureIdx, EFeatureType::Float);
+    } else if (split.Type == ESplitType::OneHotFeature) {
+        Y_ASSERT(split.FeatureIdx != -1);
+        markFeatureAsUsed(split.FeatureIdx, EFeatureType::Categorical);
+    } else if (split.Type == ESplitType::EstimatedFeature) {
+        Y_ASSERT(split.FeatureIdx != -1);
+        markFeatureAsUsed(split.FeatureIdx, EFeatureType::Text);
+    } else if (split.Type == ESplitType::OnlineCtr) {
+        for (const int catFeatureIdx : split.Ctr.Projection.CatFeatures) {
+            markFeatureAsUsed(catFeatureIdx, EFeatureType::Categorical);
+        }
+        for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
+            markFeatureAsUsed(binFeature.FloatFeature, EFeatureType::Float);
+        }
+        for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
+            markFeatureAsUsed(oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
+        }
+    } else {
+        ythrow TCatBoostException() << "Unknown feature type" << split.Type;
+    }
+}
+
 static TSplitTree GreedyTensorSearchOblivious(
     const TTrainingForCPUDataProviders& data,
     double modelLength,
@@ -1055,6 +1153,8 @@ static TSplitTree GreedyTensorSearchOblivious(
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             ProcessCtrSplit(data, bestSplit, fold, ctx);
         }
+
+        MarkFeaturesAsUsed(bestSplit, *ctx->Layout, &ctx->LearnProgress->UsedFeatures);
 
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             SetPermutedIndices(

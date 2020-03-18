@@ -894,9 +894,17 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
     parser
         .AddLongOption("feature_weights")
         .RequiredArgument("String")
-        .Help("Penalties for each use of feature. Possible formats: \"(1,0,0,-1)\" or \"0:1,3:-1\" or \"FeatureName1:1,FeatureName2:-1\"")
+        .Help("Weights to multiply splits gain where specific feature is used. Possible formats: \"(1,0,0,-1)\" or \"0:1,3:-1\" or \"FeatureName1:1,FeatureName2:-1\"")
         .Handler1T<TString>([plainJsonPtr](const TString& featureWeights) {
             (*plainJsonPtr)["feature_weights"] = featureWeights;
+        });
+
+    parser
+        .AddLongOption("first_feature_use_penalties")
+        .RequiredArgument("String")
+        .Help("Penalties for each use of feature. Possible formats: \"(1,0,0,-1)\" or \"0:1,3:-1\" or \"FeatureName1:1,FeatureName2:-1\"")
+        .Handler1T<TString>([plainJsonPtr](const TString& firstFeatureUsePenalty) {
+            (*plainJsonPtr)["first_feature_use_penalties"] = firstFeatureUsePenalty;
         });
 }
 

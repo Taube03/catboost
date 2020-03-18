@@ -256,8 +256,9 @@
         "model_size_reg": 0.5, 
         "monotone_constraints": {}, 
         "penalties": {
-            "penalties_coefficient": 1, 
-            "penalties_for_each_use": {}
+            "feature_weights": {}, 
+            "first_feature_use_penalties": {}, 
+            "penalties_coefficient": 1
         }, 
         "random_strength": 1, 
         "rsm": 1, 

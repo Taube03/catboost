@@ -12,6 +12,7 @@ namespace NJson {
 
 namespace NCatboostOptions {
     constexpr float DEFAULT_FEATURE_WEIGHT = 1;
+    constexpr float DEFAULT_FEATURE_PENALTY = 0;
 
     using TPerFeaturePenalty = TMap<ui32, float>;
 
@@ -20,12 +21,13 @@ namespace NCatboostOptions {
         TFeaturePenaltiesOptions()
             : FeatureWeights("feature_weights", {}, ETaskType::CPU)
             , PenaltiesCoefficient("penalties_coefficient", 1, ETaskType::CPU)
+            , FirstFeatureUsePenalty("first_feature_use_penalties", {}, ETaskType::CPU)
         {
         }
 
         bool operator==(const TFeaturePenaltiesOptions& rhs) const {
-            return std::tie(FeatureWeights, PenaltiesCoefficient) ==
-                std::tie(rhs.FeatureWeights, PenaltiesCoefficient);
+            return std::tie(FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty) ==
+                std::tie(rhs.FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty);
         }
 
         bool operator!=(const TFeaturePenaltiesOptions& rhs) const {
@@ -37,6 +39,7 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<TPerFeaturePenalty> FeatureWeights;
         TCpuOnlyOption<float> PenaltiesCoefficient;
+        TCpuOnlyOption<TPerFeaturePenalty> FirstFeatureUsePenalty;
         //TODO(taube): add more penalties
     };
 

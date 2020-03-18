@@ -191,6 +191,9 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const NCB::TDataMetaInfo& met
     if (penaltiesRef.Has("feature_weights")) {
         ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["feature_weights"]);
     }
+    if (penaltiesRef.Has("first_feature_use_penalties")) {
+        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["first_feature_use_penalties"]);
+    }
 }
 
 void ConvertAllFeaturePenaltiesFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {

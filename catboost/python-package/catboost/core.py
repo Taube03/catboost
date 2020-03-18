@@ -1466,6 +1466,9 @@ def _check_param_types(params):
     if 'feature_weights' in params:
         if not isinstance(params['feature_weights'], STRING_TYPES + ARRAY_TYPES + (dict,)):
             raise CatBoostError("Invalid `feature_weights` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
+    if 'first_feature_use_penalties' in params:
+        if not isinstance(params['first_feature_use_penalties'], STRING_TYPES + ARRAY_TYPES + (dict,)):
+            raise CatBoostError("Invalid `first_feature_use_penalties` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
 
 
 def _params_type_cast(params):
@@ -3513,12 +3516,15 @@ class CatBoostClassifier(CatBoost):
 
     monotone_constraints : list or numpy.ndarray or string or dict, [default=None]
         Monotone constraints for features.
+        
+    feature_weights : list or numpy.ndarray or string or dict, [default=None]
+        Coefficient to multiply split with specific feature use.
     
     penalties_coefficient : float, [default=1]
         Common coefficient for all penalties.
         
-    feature_weights : list or numpy.ndarray or string or dict, [default=None]
-        Coefficient to multiply split with specific feature use.
+    first_feature_use_penalties : list or numpy.ndarray or string or dict, [default=None]
+        Penalties to first use of specific feature in model
 
     sampling_frequency : string, [default=PerTree]
         Frequency to sample weights and objects when building trees.
@@ -3786,8 +3792,9 @@ class CatBoostClassifier(CatBoost):
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
         monotone_constraints=None,
-        penalties_coefficient=None,
         feature_weights=None,
+        penalties_coefficient=None,
+        first_feature_use_penalties=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
         langevin=None,
@@ -4338,8 +4345,9 @@ class CatBoostRegressor(CatBoost):
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
         monotone_constraints=None,
-        penalties_coefficient=None,
         feature_weights=None,
+        penalties_coefficient=None,
+        first_feature_use_penalties=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
         langevin=None,

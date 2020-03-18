@@ -376,6 +376,7 @@ void NCatboostOptions::PlainJsonToOptions(
     featurePenaltiesOptions.SetType(NJson::JSON_MAP);
     CopyOption(plainOptions, "feature_weights", &featurePenaltiesOptions, &seenKeys);
     CopyOption(plainOptions, "penalties_coefficient", &featurePenaltiesOptions, &seenKeys);
+    CopyOption(plainOptions, "first_feature_use_penalties", &featurePenaltiesOptions, &seenKeys);
 
     //feature evaluation options
     if (GetTaskType(plainOptions) == ETaskType::GPU) {
@@ -726,6 +727,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
             CopyOption(penaltiesOptions, "penalties_coefficient", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyTreePenalties, "penalties_coefficient");
+
+            CopyOption(penaltiesOptions, "first_feature_use_penalties", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreePenalties, "first_feature_use_penalties");
 
             CB_ENSURE(optionsCopyTreePenalties.GetMapSafe().empty(), "penalties: key " + optionsCopyTreePenalties.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyTree, "penalties");
