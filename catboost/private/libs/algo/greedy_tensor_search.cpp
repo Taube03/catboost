@@ -616,25 +616,11 @@ static float GetSplitFeatureWeight(
     const NCatboostOptions::TPerFeaturePenalty& featureWeights
 ) {
     float result = 1;
-    if (split.Type == ESplitType::FloatFeature) {
-        Y_ASSERT(split.FeatureIdx != -1);
-        result *= GetFeaturePenalty(featureWeights, layout, split.FeatureIdx, EFeatureType::Float);
-    } else if (split.Type == ESplitType::OneHotFeature) {
-        Y_ASSERT(split.FeatureIdx != -1);
-        result *= GetFeaturePenalty(featureWeights, layout, split.FeatureIdx, EFeatureType::Categorical);
-    } else if (split.Type == ESplitType::OnlineCtr) {
-        for (const int catFeatureIdx : split.Ctr.Projection.CatFeatures) {
-            result *= GetFeaturePenalty(featureWeights, layout, catFeatureIdx, EFeatureType::Categorical);
-        }
-        for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
-            result *= GetFeaturePenalty(featureWeights, layout, binFeature.FloatFeature, EFeatureType::Float);
-        }
-        for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
-            result *= GetFeaturePenalty(featureWeights, layout, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
-        }
-    } else {
-        Y_ASSERT(false); //Another types are not supported in CPU
-    }
+
+    const auto addPenaltyFunc = [&](const int internalFeatureIdx, const EFeatureType type) {
+        result *= GetFeaturePenalty(featureWeights, layout, internalFeatureIdx, type);
+    };
+    split.IterateOverUsedFeatures(addPenaltyFunc);
 
     return result;
 }
@@ -665,25 +651,11 @@ static float GetSplitFirstFeatureUsePenalty(
     const float penaltiesCoefficient
 ) {
     float result = 0;
-    if (split.Type == ESplitType::FloatFeature) {
-        Y_ASSERT(split.FeatureIdx != -1);
-        result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, split.FeatureIdx, EFeatureType::Float);
-    } else if (split.Type == ESplitType::OneHotFeature) {
-        Y_ASSERT(split.FeatureIdx != -1);
-        result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, split.FeatureIdx, EFeatureType::Categorical);
-    } else if (split.Type == ESplitType::OnlineCtr) {
-        for (const int catFeatureIdx : split.Ctr.Projection.CatFeatures) {
-            result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, catFeatureIdx, EFeatureType::Categorical);
-        }
-        for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
-            result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, binFeature.FloatFeature, EFeatureType::Float);
-        }
-        for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
-            result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
-        }
-    } else {
-        Y_ASSERT(false); //Another types are not supported in CPU
-    }
+
+    const auto addPenaltyFunc = [&](const int internalFeatureIdx, const EFeatureType type) {
+        result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, internalFeatureIdx, type);
+    };
+    split.IterateOverUsedFeatures(addPenaltyFunc);
 
     result *= penaltiesCoefficient;
     return result;
@@ -1080,28 +1052,7 @@ static void MarkFeaturesAsUsed(
         (*usedFeatures)[externalFeatureIndex] = true;
     };
 
-    if (split.Type == ESplitType::FloatFeature) {
-        Y_ASSERT(split.FeatureIdx != -1);
-        markFeatureAsUsed(split.FeatureIdx, EFeatureType::Float);
-    } else if (split.Type == ESplitType::OneHotFeature) {
-        Y_ASSERT(split.FeatureIdx != -1);
-        markFeatureAsUsed(split.FeatureIdx, EFeatureType::Categorical);
-    } else if (split.Type == ESplitType::EstimatedFeature) {
-        Y_ASSERT(split.FeatureIdx != -1);
-        markFeatureAsUsed(split.FeatureIdx, EFeatureType::Text);
-    } else if (split.Type == ESplitType::OnlineCtr) {
-        for (const int catFeatureIdx : split.Ctr.Projection.CatFeatures) {
-            markFeatureAsUsed(catFeatureIdx, EFeatureType::Categorical);
-        }
-        for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
-            markFeatureAsUsed(binFeature.FloatFeature, EFeatureType::Float);
-        }
-        for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
-            markFeatureAsUsed(oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
-        }
-    } else {
-        ythrow TCatBoostException() << "Unknown feature type" << split.Type;
-    }
+    split.IterateOverUsedFeatures(markFeatureAsUsed);
 }
 
 static TSplitTree GreedyTensorSearchOblivious(
