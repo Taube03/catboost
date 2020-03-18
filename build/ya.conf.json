@@ -15,6 +15,9 @@
         "cling": {
             "description": "Run cling"
         },
+        "cue": {
+            "description": "Validate and define text-based and dynamic configuration"
+        },
         "dctl": {
             "description": "Run Yandex.Deploy CLI"
         },
@@ -319,6 +322,9 @@
         },
         "jstyle": {
             "description": "Java styler"
+        },
+        "ya_sed": {
+            "description": "This tool simplifies replacing of some text in Arcadia"
         }
     },
     "toolchain": {
@@ -824,6 +830,28 @@
                 "yo": {
                     "bottle": "yo",
                     "executable": "yo"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "cue": {
+            "tools": {
+                "cue": {
+                    "bottle": "cue",
+                    "executable": "cue"
                 }
             },
             "platforms": [
@@ -5252,6 +5280,34 @@
                     "default": true
                 }
             ]
+        },
+        "ya_sed": {
+            "tools": {
+                "ya_sed": {
+                    "bottle": "ya_sed",
+                    "executable": "ya_sed"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -5286,7 +5342,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    628406019
+                    630920203
                 ],
                 "match": "ymake"
             },
@@ -5310,7 +5366,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    621248055
+                    631667659
                 ],
                 "match": "arc"
             },
@@ -5342,6 +5398,20 @@
             "executable": {
                 "yo": [
                     "yo"
+                ]
+            }
+        },
+        "cue": {
+            "formula": {
+                "sandbox_id": [
+                    631593996,
+                    631593924
+                ],
+                "match": "cue"
+            },
+            "executable": {
+                "cue": [
+                    "cue"
                 ]
             }
         },
@@ -6958,7 +7028,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 630344108,
+                "sandbox_id": 632374914,
                 "match": "horadric"
             },
             "executable": {
@@ -7293,7 +7363,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 621424108,
+                "sandbox_id": 631647613,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -7316,6 +7386,19 @@
                     "idea-community",
                     "bin",
                     "format.bat"
+                ]
+            }
+        },
+        "ya_sed": {
+            "formula": {
+                "sandbox_id": [
+                    629482065
+                ],
+                "match": "ya_sed"
+            },
+            "executable": {
+                "ya_sed": [
+                    "ya_sed"
                 ]
             }
         }
