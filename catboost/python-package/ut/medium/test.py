@@ -7129,3 +7129,27 @@ def test_feature_penalties_work():
     importance_with_penalties = model_with_penalties.get_feature_importance(type=EFstrType.PredictionValuesChange, data=pool)[most_important_feature_index]
 
     assert importance_with_penalties < importance_without_penalties
+
+def test_different_formats_of_feature_penalties():
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+
+    penalties_for_each_use_array = np.array([0, 0, 0, 10, 0, 0, 0, 1])
+    penalties_for_each_use_list = [0, 0, 0, 10, 0, 0, 0, 1]
+    penalties_for_each_use_dict_1 = {3:10, 7:1}
+    penalties_for_each_use_dict_2 = {'DepTime': 10, 'Distance': 1}
+    penalties_for_each_use_string_1 = "(0,0,0,10,0,0,0,1)"
+    penalties_for_each_use_string_2 = "3:10,7:1"
+    penalties_for_each_use_string_3 = "DepTime:10,Distance:1"
+
+    common_options = dict(iterations=50)
+    model1 = CatBoostClassifier(penalties_for_each_use=penalties_for_each_use_array, **common_options)
+    model1.fit(train_pool)
+    predictions1 = model1.predict(test_pool)
+    for penalties_for_each_use in [penalties_for_each_use_list, penalties_for_each_use_dict_1,
+                                 penalties_for_each_use_dict_2, penalties_for_each_use_string_1,
+                                 penalties_for_each_use_string_2, penalties_for_each_use_string_3]:
+        model2 = CatBoostRegressor(penalties_for_each_use=penalties_for_each_use, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
