@@ -7189,3 +7189,4 @@ def test_different_formats_of_feature_weights():
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
+    
