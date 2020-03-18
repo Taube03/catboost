@@ -5195,8 +5195,8 @@ cpdef _check_train_params(dict params):
         del params_to_check['ignored_features']
     if 'monotone_constraints' in params_to_check:
         del params_to_check['monotone_constraints']
-    if 'penalties_for_each_use' in params_to_check:
-        del params_to_check['penalties_for_each_use']
+    if 'feature_weights' in params_to_check:
+        del params_to_check['feature_weights']
 
     prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(

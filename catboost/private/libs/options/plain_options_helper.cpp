@@ -374,7 +374,7 @@ void NCatboostOptions::PlainJsonToOptions(
 
     auto& featurePenaltiesOptions = treeOptions["penalties"];
     featurePenaltiesOptions.SetType(NJson::JSON_MAP);
-    CopyOption(plainOptions, "penalties_for_each_use", &featurePenaltiesOptions, &seenKeys);
+    CopyOption(plainOptions, "feature_weights", &featurePenaltiesOptions, &seenKeys);
     CopyOption(plainOptions, "penalties_coefficient", &featurePenaltiesOptions, &seenKeys);
 
     //feature evaluation options
@@ -721,8 +721,8 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             const auto& penaltiesOptions = treeOptions["penalties"];
             auto& optionsCopyTreePenalties = optionsCopyTree["penalties"];
 
-            CopyOption(penaltiesOptions, "penalties_for_each_use", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&optionsCopyTreePenalties, "penalties_for_each_use");
+            CopyOption(penaltiesOptions, "feature_weights", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreePenalties, "feature_weights");
 
             CopyOption(penaltiesOptions, "penalties_coefficient", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyTreePenalties, "penalties_coefficient");

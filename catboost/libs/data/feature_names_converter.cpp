@@ -188,8 +188,8 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const NCB::TDataMetaInfo& met
     auto& penaltiesRef = treeOptions["penalties"];
     const auto namesToIndicesMap = MakeIndicesFromNames(metaInfo);
 
-    if (penaltiesRef.Has("penalties_for_each_use")) {
-        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["penalties_for_each_use"]);
+    if (penaltiesRef.Has("feature_weights")) {
+        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["feature_weights"]);
     }
 }
 
@@ -202,8 +202,8 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const NCatboostOptions::TPool
     auto& penaltiesRef = treeOptions["penalties"];
     const auto namesToIndicesMap = MakeIndicesFromNames(poolLoadParams);
 
-    if (penaltiesRef.Has("penalties_for_each_use")) {
-        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["penalties_for_each_use"]);
+    if (penaltiesRef.Has("feature_weights")) {
+        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["feature_weights"]);
     }
 }
 

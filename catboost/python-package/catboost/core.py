@@ -1463,9 +1463,9 @@ def _check_param_types(params):
     if 'monotone_constraints' in params:
         if not isinstance(params['monotone_constraints'], STRING_TYPES + ARRAY_TYPES + (dict,)):
             raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
-    if 'penalties_for_each_use' in params:
-        if not isinstance(params['penalties_for_each_use'], STRING_TYPES + ARRAY_TYPES + (dict,)):
-            raise CatBoostError("Invalid `penalties_for_each_use` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
+    if 'feature_weights' in params:
+        if not isinstance(params['feature_weights'], STRING_TYPES + ARRAY_TYPES + (dict,)):
+            raise CatBoostError("Invalid `feature_weights` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
 
 
 def _params_type_cast(params):
@@ -3517,8 +3517,8 @@ class CatBoostClassifier(CatBoost):
     penalties_coefficient : float, [default=1]
         Common coefficient for all penalties.
         
-    penalties_for_each_use : list or numpy.ndarray or string or dict, [default=None]
-        Penalty for each use of feature in model.
+    feature_weights : list or numpy.ndarray or string or dict, [default=None]
+        Coefficient to multiply split with specific feature use.
 
     sampling_frequency : string, [default=PerTree]
         Frequency to sample weights and objects when building trees.
@@ -3787,7 +3787,7 @@ class CatBoostClassifier(CatBoost):
         ctr_history_unit=None,
         monotone_constraints=None,
         penalties_coefficient=None,
-        penalties_for_each_use=None,
+        feature_weights=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
         langevin=None,
@@ -4339,7 +4339,7 @@ class CatBoostRegressor(CatBoost):
         ctr_history_unit=None,
         monotone_constraints=None,
         penalties_coefficient=None,
-        penalties_for_each_use=None,
+        feature_weights=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
         langevin=None,

@@ -600,37 +600,37 @@ static void SelectCtrsToDropAfterCalc(
 }
 
 static inline float GetFeatureWeight(
-    const NCatboostOptions::TPerFeaturePenalty& penalties,
+    const NCatboostOptions::TPerFeaturePenalty& featureWeights,
     const TFeaturesLayout& layout,
     const ui32 internalFeatureIndex,
     const EFeatureType type
 ) {
     const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
-    auto it = penalties.find(externalFeatureIndex);
-    return (it != penalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_PENALTY);
+    auto it = featureWeights.find(externalFeatureIndex);
+    return (it != featureWeights.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_WEIGHT);
 }
 
 static float GetSplitFeatureWeight(
     const TSplit& split,
     const TFeaturesLayout& layout,
-    const NCatboostOptions::TPerFeaturePenalty& penaltiesForEachUse
+    const NCatboostOptions::TPerFeaturePenalty& featureWeights
 ) {
     float result = 1;
     if (split.Type == ESplitType::FloatFeature) {
         Y_ASSERT(split.FeatureIdx != -1);
-        result *= GetFeatureWeight(penaltiesForEachUse, layout, split.FeatureIdx, EFeatureType::Float);
+        result *= GetFeatureWeight(featureWeights, layout, split.FeatureIdx, EFeatureType::Float);
     } else if (split.Type == ESplitType::OneHotFeature) {
         Y_ASSERT(split.FeatureIdx != -1);
-        result *= GetFeatureWeight(penaltiesForEachUse, layout, split.FeatureIdx, EFeatureType::Categorical);
+        result *= GetFeatureWeight(featureWeights, layout, split.FeatureIdx, EFeatureType::Categorical);
     } else if (split.Type == ESplitType::OnlineCtr) {
         for (const int floatFeatureIdx : split.Ctr.Projection.CatFeatures) {
-            result *= GetFeatureWeight(penaltiesForEachUse, layout, floatFeatureIdx, EFeatureType::Categorical);
+            result *= GetFeatureWeight(featureWeights, layout, floatFeatureIdx, EFeatureType::Categorical);
         }
         for (const auto& binFeature : split.Ctr.Projection.BinFeatures) {
-            result *= GetFeatureWeight(penaltiesForEachUse, layout, binFeature.FloatFeature, EFeatureType::Float);
+            result *= GetFeatureWeight(featureWeights, layout, binFeature.FloatFeature, EFeatureType::Float);
         }
         for (const auto& oneHotFeature : split.Ctr.Projection.OneHotFeatures) {
-            result *= GetFeatureWeight(penaltiesForEachUse, layout, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
+            result *= GetFeatureWeight(featureWeights, layout, oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
         }
     } else {
         Y_ASSERT(false); //Another types are not supported in CPU
@@ -640,7 +640,7 @@ static float GetSplitFeatureWeight(
 }
 
 static void AddFeaturePenalties(
-    const NCatboostOptions::TPerFeaturePenalty& penaltiesForEachUse,
+    const NCatboostOptions::TPerFeaturePenalty& featureWeights,
     const float /*penaltiesCoefficient*/, //will be in use with feature penalties
     const TFeaturesLayout& layout,
     const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
@@ -651,7 +651,7 @@ static void AddFeaturePenalties(
     score *= GetSplitFeatureWeight(
         cand->GetBestSplit(objectsData, oneHotMaxSize),
         layout,
-        penaltiesForEachUse
+        featureWeights
     );
 }
 
@@ -736,7 +736,7 @@ static void CalcBestScore(
 
             for (size_t subcandidateIdx = 0; subcandidateIdx < allScores.size(); ++subcandidateIdx) {
                 AddFeaturePenalties(
-                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesForEachUse,
+                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->FeatureWeights,
                     ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient,
                     *ctx->Layout,
                     *data.Learn->ObjectsData,
@@ -825,7 +825,7 @@ static void CalcBestScoreLeafwise(
 
             for (size_t subcandidateIdx = 0; subcandidateIdx < candidateScores.size(); ++subcandidateIdx) {
                 AddFeaturePenalties(
-                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesForEachUse,
+                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->FeatureWeights,
                     ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient,
                     *ctx->Layout,
                     *data.Learn->ObjectsData,

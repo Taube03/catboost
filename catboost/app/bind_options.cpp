@@ -892,11 +892,11 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         });
 
     parser
-        .AddLongOption("penalties_for_each_use")
+        .AddLongOption("feature_weights")
         .RequiredArgument("String")
         .Help("Penalties for each use of feature. Possible formats: \"(1,0,0,-1)\" or \"0:1,3:-1\" or \"FeatureName1:1,FeatureName2:-1\"")
-        .Handler1T<TString>([plainJsonPtr](const TString& penaltiesForEachUse) {
-            (*plainJsonPtr)["penalties_for_each_use"] = penaltiesForEachUse;
+        .Handler1T<TString>([plainJsonPtr](const TString& featureWeights) {
+            (*plainJsonPtr)["feature_weights"] = featureWeights;
         });
 }
 

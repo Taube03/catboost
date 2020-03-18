@@ -7148,7 +7148,7 @@ def test_feature_weights_work():
     )[most_important_feature_index]
 
     model_with_feature_weights = CatBoostClassifier(
-        penalties_for_each_use={most_important_feature_index: 0.1},
+        feature_weights={most_important_feature_index: 0.1},
         **classifier_params
     )
     model_with_feature_weights.fit(pool)
@@ -7172,7 +7172,7 @@ def test_different_formats_of_feature_weights():
     feature_weights_string_3 = "DepTime:0.1,Distance:2"
 
     common_options = dict(iterations=50)
-    model1 = CatBoostClassifier(penalties_for_each_use=feature_weights_array, **common_options)
+    model1 = CatBoostClassifier(feature_weights=feature_weights_array, **common_options)
     model1.fit(train_pool)
     predictions1 = model1.predict(test_pool)
     for feature_weights in [
@@ -7183,7 +7183,7 @@ def test_different_formats_of_feature_weights():
         feature_weights_string_2,
         feature_weights_string_3
     ]:
-        model2 = CatBoostClassifier(penalties_for_each_use=feature_weights, **common_options)
+        model2 = CatBoostClassifier(feature_weights=feature_weights, **common_options)
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)

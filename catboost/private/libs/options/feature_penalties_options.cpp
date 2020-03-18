@@ -9,11 +9,11 @@ using namespace NCatboostOptions;
 
 namespace NCatboostOptions {
     void NCatboostOptions::TFeaturePenaltiesOptions::Load(const NJson::TJsonValue& options) {
-        CheckedLoad(options, &PenaltiesForEachUse, &PenaltiesCoefficient);
+        CheckedLoad(options, &FeatureWeights, &PenaltiesCoefficient);
     }
 
     void NCatboostOptions::TFeaturePenaltiesOptions::Save(NJson::TJsonValue* options) const {
-        SaveFields(options, PenaltiesForEachUse, PenaltiesCoefficient);
+        SaveFields(options, FeatureWeights, PenaltiesCoefficient);
     }
 
     static constexpr auto floatRegex = AsStringBuf("([0-9]+([.][0-9]*)?|[.][0-9]+)");
@@ -41,8 +41,8 @@ namespace NCatboostOptions {
         }
 
         TJsonValue& penaltiesRef = treeOptions["penalties"];
-        if (penaltiesRef.Has("penalties_for_each_use")) {
-            ConvertFeaturePenaltiesToCanonicalFormat(&penaltiesRef["penalties_for_each_use"]);
+        if (penaltiesRef.Has("feature_weights")) {
+            ConvertFeaturePenaltiesToCanonicalFormat(&penaltiesRef["feature_weights"]);
         }
     }
 }
