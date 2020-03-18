@@ -7129,7 +7129,7 @@ def test_to_regressor_wrong_type():
     with pytest.raises(CatBoostError):
         to_regressor(model)
 
-def test_feature_penalties_work():
+def test_feature_weights_work():
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     most_important_feature_index = 3
     classifier_params = {
@@ -7140,41 +7140,50 @@ def test_feature_penalties_work():
         'loss_function': 'MultiClass',
     }
 
-    model_without_penalties = CatBoostClassifier(**classifier_params)
-    model_without_penalties.fit(pool)
-    importance_without_penalties = model_without_penalties.get_feature_importance(type=EFstrType.PredictionValuesChange, data=pool)[most_important_feature_index]
+    model_without_feature_weights = CatBoostClassifier(**classifier_params)
+    model_without_feature_weights.fit(pool)
+    importance_without_feature_weights = model_without_feature_weights.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
 
-    model_with_penalties = CatBoostClassifier(penalties_for_each_use={most_important_feature_index: 10}, **classifier_params)
-    model_with_penalties.fit(pool)
-    importance_with_penalties = model_with_penalties.get_feature_importance(type=EFstrType.PredictionValuesChange, data=pool)[most_important_feature_index]
+    model_with_feature_weights = CatBoostClassifier(
+        penalties_for_each_use={most_important_feature_index: 0.1},
+        **classifier_params
+    )
+    model_with_feature_weights.fit(pool)
+    importance_with_feature_weights = model_with_feature_weights.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
 
-    assert importance_with_penalties < importance_without_penalties
+    assert importance_with_feature_weights < importance_without_feature_weights
 
-def test_different_formats_of_feature_penalties():
+def test_different_formats_of_feature_weights():
     train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
 
-    penalties_for_each_use_array = np.array([0, 0, 0, 10, 0, 0, 0, 1])
-    penalties_for_each_use_list = [0, 0, 0, 10, 0, 0, 0, 1]
-    penalties_for_each_use_dict_1 = {3:10, 7:1}
-    penalties_for_each_use_dict_2 = {'DepTime': 10, 'Distance': 1}
-    penalties_for_each_use_string_1 = "(0,0,0,10,0,0,0,1)"
-    penalties_for_each_use_string_2 = "3:10,7:1"
-    penalties_for_each_use_string_3 = "DepTime:10,Distance:1"
+    feature_weights_array = np.array([0, 0, 0, 0.1, 0, 0, 0, 2])
+    feature_weights_list = [0, 0, 0, 0.1, 0, 0, 0, 2]
+    feature_weights_dict_1 = {3:0.1, 7:2}
+    feature_weights_dict_2 = {'DepTime': 0.1, 'Distance': 2}
+    feature_weights_string_1 = "(0,0,0,0.1,0,0,0,2)"
+    feature_weights_string_2 = "3:0.1,7:2"
+    feature_weights_string_3 = "DepTime:0.1,Distance:2"
 
     common_options = dict(iterations=50)
-    model1 = CatBoostClassifier(penalties_for_each_use=penalties_for_each_use_array, **common_options)
+    model1 = CatBoostClassifier(penalties_for_each_use=feature_weights_array, **common_options)
     model1.fit(train_pool)
     predictions1 = model1.predict(test_pool)
-    for penalties_for_each_use in [
-        penalties_for_each_use_list,
-        penalties_for_each_use_dict_1,
-        penalties_for_each_use_dict_2,
-        penalties_for_each_use_string_1,
-        penalties_for_each_use_string_2,
-        penalties_for_each_use_string_3
+    for feature_weights in [
+        feature_weights_list,
+        feature_weights_dict_1,
+        feature_weights_dict_2,
+        feature_weights_string_1,
+        feature_weights_string_2,
+        feature_weights_string_3
     ]:
-        model2 = CatBoostClassifier(penalties_for_each_use=penalties_for_each_use, **common_options)
+        model2 = CatBoostClassifier(penalties_for_each_use=feature_weights, **common_options)
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
