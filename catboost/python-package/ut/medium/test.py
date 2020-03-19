@@ -7250,3 +7250,34 @@ def test_different_formats_of_first_feature_use_penalties():
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
+
+
+def test_penalties_coefficient_work():
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'devices': '0',
+        'loss_function': 'MultiClass',
+    }
+
+    model_without_feature_penalties = CatBoostClassifier(**classifier_params)
+    model_without_feature_penalties.fit(pool)
+
+    model_with_feature_penalties = CatBoostClassifier(
+        first_feature_use_penalties={most_important_feature_index: 100},
+        **classifier_params
+    )
+    model_with_feature_penalties.fit(pool)
+
+    model_with_zero_feature_penalties = CatBoostClassifier(
+        first_feature_use_penalties={most_important_feature_index: 100},
+        penalties_coefficient=0,
+        **classifier_params
+    )
+    model_with_zero_feature_penalties.fit(pool)
+
+    assert any(model_without_feature_penalties.predict_proba(pool)[0] == model_with_zero_feature_penalties.predict_proba(pool)[0])
+    assert any(model_without_feature_penalties.predict_proba(pool)[0] != model_with_feature_penalties.predict_proba(pool)[0])
