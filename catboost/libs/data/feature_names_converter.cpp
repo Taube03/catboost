@@ -208,6 +208,9 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const NCatboostOptions::TPool
     if (penaltiesRef.Has("feature_weights")) {
         ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["feature_weights"]);
     }
+    if (penaltiesRef.Has("first_feature_use_penalties")) {
+        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["first_feature_use_penalties"]);
+    }
 }
 
 ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
