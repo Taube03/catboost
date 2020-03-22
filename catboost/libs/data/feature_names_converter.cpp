@@ -59,7 +59,7 @@ static bool IsArrayOfIntegers(const NJson::TJsonValue& ignoredFeaturesJson) {
     });
 }
 
-static TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
+TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
     TMap<TString, ui32> indicesFromNames;
     if (poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited()) {
         const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath,
@@ -77,7 +77,7 @@ static TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoa
     return indicesFromNames;
 }
 
-static TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
     TMap<TString, ui32> indicesFromNames;
     ui32 columnIdx = 0;
     for (const auto& columnInfo : metaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
@@ -132,7 +132,7 @@ void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInf
     }
 }
 
-static void ConvertPerFeatureOptionsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* options) {
+void ConvertPerFeatureOptionsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* options) {
     if (indicesFromNames.empty()) {
         return;
     }
@@ -177,40 +177,6 @@ void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPool
     }
 
     ConvertPerFeatureOptionsFromStringToIndices(poolLoadParams, &treeOptions["monotone_constraints"]);
-}
-
-void ConvertAllFeaturePenaltiesFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions) {
-    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
-    if (!treeOptions.Has("penalties")) {
-        return;
-    }
-
-    auto& penaltiesRef = treeOptions["penalties"];
-    const auto namesToIndicesMap = MakeIndicesFromNames(metaInfo);
-
-    if (penaltiesRef.Has("feature_weights")) {
-        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["feature_weights"]);
-    }
-    if (penaltiesRef.Has("first_feature_use_penalties")) {
-        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["first_feature_use_penalties"]);
-    }
-}
-
-void ConvertAllFeaturePenaltiesFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
-    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
-    if (!treeOptions.Has("penalties")) {
-        return;
-    }
-
-    auto& penaltiesRef = treeOptions["penalties"];
-    const auto namesToIndicesMap = MakeIndicesFromNames(poolLoadParams);
-
-    if (penaltiesRef.Has("feature_weights")) {
-        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["feature_weights"]);
-    }
-    if (penaltiesRef.Has("first_feature_use_penalties")) {
-        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["first_feature_use_penalties"]);
-    }
 }
 
 ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
