@@ -1,7 +1,8 @@
 #pragma once
 
+#include "json_helper.h"
+
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/json_helpers.h>
 
 #include <library/json/writer/json_value.h>
 
@@ -17,7 +18,7 @@ using namespace NJson;
 namespace NCatboostOptions {
     template<typename TFeatureOptionType>
     static TFeatureOptionType GetOptionValue(const TJsonValue& option) {
-        return NCB::FromJson<TFeatureOptionType>(option);
+        return FromJson<TFeatureOptionType>(option);
     }
 
     std::regex GetDenseFormatPattern(const TStringBuf featureOptionRegex); // like: (1,0,0,-1,0)
