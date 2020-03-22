@@ -673,17 +673,17 @@ static void AddFeaturePenalties(
 ) {
     double& score = cand->BestScore.Val;
     const auto bestSplit = cand->GetBestSplit(objectsData, oneHotMaxSize);
+    score *= GetSplitFeatureWeight(
+        bestSplit,
+        layout,
+        featureWeights
+    );
     score -= GetSplitFirstFeatureUsePenalty(
         bestSplit,
         layout,
         usedFeatures,
         firstFeatureUsePenalty,
         penaltiesCoefficient
-    );
-    score *= GetSplitFeatureWeight(
-        bestSplit,
-        layout,
-        featureWeights
     );
 }
 
