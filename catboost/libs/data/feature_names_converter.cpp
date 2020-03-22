@@ -147,7 +147,7 @@ static void ConvertPerFeatureOptionsFromStringToIndices(const TMap<TString, ui32
         for (const auto& [featureName, value] : optionsRef.GetMap()) {
             auto it = indicesFromNames.find(featureName);
             CB_ENSURE(it != indicesFromNames.end(), "Unknown feature name: " << featureName);
-            optionsWithIndices.InsertValue(ToString(indicesFromNames.at(featureName)), value);
+            optionsWithIndices.InsertValue(ToString(it->second), value);
         }
         optionsRef.Swap(optionsWithIndices);
     }
