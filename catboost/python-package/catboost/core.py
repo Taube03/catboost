@@ -1465,10 +1465,10 @@ def _check_param_types(params):
             raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
     if 'feature_weights' in params:
         if not isinstance(params['feature_weights'], STRING_TYPES + ARRAY_TYPES + (dict,)):
-            raise CatBoostError("Invalid `feature_weights` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
+            raise CatBoostError("Invalid `feature_weights` type={} : must be string or list of floats or dict.".format(type(param)))
     if 'first_feature_use_penalties' in params:
         if not isinstance(params['first_feature_use_penalties'], STRING_TYPES + ARRAY_TYPES + (dict,)):
-            raise CatBoostError("Invalid `first_feature_use_penalties` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
+            raise CatBoostError("Invalid `first_feature_use_penalties` type={} : must be string or list of floats or dict.".format(type(param)))
 
 
 def _params_type_cast(params):
@@ -3518,7 +3518,7 @@ class CatBoostClassifier(CatBoost):
         Monotone constraints for features.
         
     feature_weights : list or numpy.ndarray or string or dict, [default=None]
-        Coefficient to multiply split with specific feature use.
+        Coefficient to multiply split gain with specific feature use.
     
     penalties_coefficient : float, [default=1]
         Common coefficient for all penalties.
