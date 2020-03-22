@@ -30,6 +30,6 @@ void ConvertMonotoneConstraintsToCanonicalFormat(TJsonValue* catBoostJsonOptions
         return;
     }
     TJsonValue& constraintsRef = treeOptions["monotone_constraints"];
-    ConvertFeatureOptionsToCanonicalFormat<int>(constraintRegex, &constraintsRef);
+    ConvertFeatureOptionsToCanonicalFormat<int>(constraintRegex, AsStringBuf("monotone_constraints"), &constraintsRef);
     LeaveOnlyNonTrivialConstraints(&constraintsRef);
 }

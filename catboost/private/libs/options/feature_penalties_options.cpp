@@ -29,8 +29,12 @@ namespace NCatboostOptions {
         *penaltiesJsonOptions = nonTrivialOptions;
     }
 
-    static void ConvertFeaturePenaltiesToCanonicalFormat(const float defaultValue, NJson::TJsonValue* featurePenaltiesJsonOptions) {
-        ConvertFeatureOptionsToCanonicalFormat<float>(floatRegex, featurePenaltiesJsonOptions);
+    static void ConvertFeaturePenaltiesToCanonicalFormat(
+        const TStringBuf optionName,
+        const float defaultValue,
+        NJson::TJsonValue* featurePenaltiesJsonOptions
+    ) {
+        ConvertFeatureOptionsToCanonicalFormat<float>(optionName, floatRegex, featurePenaltiesJsonOptions);
         LeaveOnlyNonTrivialOptions(defaultValue, featurePenaltiesJsonOptions);
     }
 
@@ -43,10 +47,18 @@ namespace NCatboostOptions {
         TJsonValue& penaltiesRef = treeOptions["penalties"];
 
         if (penaltiesRef.Has("feature_weights")) {
-            ConvertFeaturePenaltiesToCanonicalFormat(DEFAULT_FEATURE_WEIGHT, &penaltiesRef["feature_weights"]);
+            ConvertFeaturePenaltiesToCanonicalFormat(
+                "feature_weights",
+                DEFAULT_FEATURE_WEIGHT,
+                &penaltiesRef["feature_weights"]
+            );
         }
         if (penaltiesRef.Has("first_feature_use_penalties")) {
-            ConvertFeaturePenaltiesToCanonicalFormat(DEFAULT_FEATURE_PENALTY, &penaltiesRef["first_feature_use_penalties"]);
+            ConvertFeaturePenaltiesToCanonicalFormat(
+                "first_feature_use_penalties",
+                DEFAULT_FEATURE_PENALTY,
+                &penaltiesRef["first_feature_use_penalties"]
+            );
         }
     }
 }

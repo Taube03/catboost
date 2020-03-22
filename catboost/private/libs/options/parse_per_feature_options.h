@@ -27,6 +27,7 @@ namespace NCatboostOptions {
 
     template<typename TFeatureOptionType>
     TMap<TString, TFeatureOptionType> ParsePerFeatureOptionsFromString(const TString& options,
+                                                                       const TStringBuf optionName,
                                                                        const TStringBuf featureOptionRegex) {
         TMap<TString, TFeatureOptionType> optionsAsMap;
         std::regex denseFormat = GetDenseFormatPattern(featureOptionRegex);
@@ -50,17 +51,21 @@ namespace NCatboostOptions {
             }
         } else {
             CB_ENSURE(false,
-                      "Incorrect format of options. Possible formats: \"(1,0,0,-1)\", \"0:1,3:-1\", \"FeatureName1:-1,FeatureName2:-1\".");
+                      "Incorrect format of " << optionName << ". Possible formats: \"(1,0,0,-1)\", \"0:1,3:-1\", \"FeatureName1:-1,FeatureName2:-1\".");
         }
         return optionsAsMap;
     }
 
     template<typename TFeatureOptionType>
-    void ConvertFeatureOptionsToCanonicalFormat(const TStringBuf optionRegex, TJsonValue* optionsRef) {
+    void ConvertFeatureOptionsToCanonicalFormat(const TStringBuf optionName, const TStringBuf optionRegex, TJsonValue* optionsRef) {
         TJsonValue canonicalOptions(EJsonValueType::JSON_MAP);
         switch (optionsRef->GetType()) {
             case NJson::EJsonValueType::JSON_STRING: {
-                TMap<TString, TFeatureOptionType> optionsAsMap = ParsePerFeatureOptionsFromString<TFeatureOptionType>(optionsRef->GetString(), optionRegex);
+                TMap<TString, TFeatureOptionType> optionsAsMap = ParsePerFeatureOptionsFromString<TFeatureOptionType>(
+                    optionsRef->GetString(),
+                    optionName,
+                    optionRegex
+                );
                 for (const auto& [key, value] : optionsAsMap) {
                     canonicalOptions.InsertValue(key, value);
                 }
