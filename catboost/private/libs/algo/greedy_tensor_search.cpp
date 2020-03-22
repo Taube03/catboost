@@ -1,5 +1,6 @@
 #include "greedy_tensor_search.h"
 
+#include "feature_penalties_calcer.h"
 #include "fold.h"
 #include "helpers.h"
 #include "index_calcer.h"
@@ -599,93 +600,6 @@ static void SelectCtrsToDropAfterCalc(
     }
 }
 
-static inline float GetFeaturePenalty(
-    const NCatboostOptions::TPerFeaturePenalty& featurePenalties,
-    const TFeaturesLayout& layout,
-    const ui32 internalFeatureIndex,
-    const EFeatureType type
-) {
-    const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
-    auto it = featurePenalties.find(externalFeatureIndex);
-    return (it != featurePenalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_WEIGHT);
-}
-
-static float GetSplitFeatureWeight(
-    const TSplit& split,
-    const TFeaturesLayout& layout,
-    const NCatboostOptions::TPerFeaturePenalty& featureWeights
-) {
-    float result = 1;
-
-    const auto addPenaltyFunc = [&](const int internalFeatureIdx, const EFeatureType type) {
-        result *= GetFeaturePenalty(featureWeights, layout, internalFeatureIdx, type);
-    };
-    split.IterateOverUsedFeatures(addPenaltyFunc);
-
-    return result;
-}
-
-static inline float GetFeatureFirstUsePenalty(
-    const NCatboostOptions::TPerFeaturePenalty& featurePenalties,
-    const TFeaturesLayout& layout,
-    const TVector<bool>& usedFeatures,
-    const ui32 internalFeatureIndex,
-    const EFeatureType type
-) {
-    const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
-    float result = NCatboostOptions::DEFAULT_FEATURE_PENALTY;
-    if (!usedFeatures[externalFeatureIndex]) {
-        auto it = featurePenalties.find(externalFeatureIndex);
-        if (it != featurePenalties.end()) {
-            result = it->second;
-        }
-    }
-    return result;
-}
-
-static float GetSplitFirstFeatureUsePenalty(
-    const TSplit& split,
-    const TFeaturesLayout& layout,
-    const TVector<bool>& usedFeatures,
-    const NCatboostOptions::TPerFeaturePenalty& featurePenalties,
-    const float penaltiesCoefficient
-) {
-    float result = 0;
-
-    const auto addPenaltyFunc = [&](const int internalFeatureIdx, const EFeatureType type) {
-        result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, internalFeatureIdx, type);
-    };
-    split.IterateOverUsedFeatures(addPenaltyFunc);
-
-    result *= penaltiesCoefficient;
-    return result;
-}
-
-static void AddFeaturePenalties(
-    const NCatboostOptions::TPerFeaturePenalty& featureWeights,
-    const float penaltiesCoefficient,
-    const NCatboostOptions::TPerFeaturePenalty& firstFeatureUsePenalty,
-    const TFeaturesLayout& layout,
-    const TVector<bool>& usedFeatures,
-    const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
-    ui32 oneHotMaxSize,
-    TCandidateInfo* cand
-) {
-    double& score = cand->BestScore.Val;
-    const auto bestSplit = cand->GetBestSplit(objectsData, oneHotMaxSize);
-    score *= GetSplitFeatureWeight(
-        bestSplit,
-        layout,
-        featureWeights
-    );
-    score -= GetSplitFirstFeatureUsePenalty(
-        bestSplit,
-        layout,
-        usedFeatures,
-        firstFeatureUsePenalty,
-        penaltiesCoefficient
-    );
-}
 
 static void CalcBestScore(
     const TTrainingForCPUDataProviders& data,
@@ -766,18 +680,12 @@ static void CalcBestScore(
                 *candidatesContext,
                 &candidate.Candidates);
 
-            for (size_t subcandidateIdx = 0; subcandidateIdx < allScores.size(); ++subcandidateIdx) {
-                AddFeaturePenalties(
-                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->FeatureWeights,
-                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient,
-                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->FirstFeatureUsePenalty,
-                    *ctx->Layout,
-                    ctx->LearnProgress->UsedFeatures,
-                    *data.Learn->ObjectsData,
-                    candidatesContext->OneHotMaxSize,
-                    &candidate.Candidates[subcandidateIdx]
-                );
-            }
+            AddFeaturePenaltiesToBestSplits(
+                ctx,
+                *data.Learn->ObjectsData,
+                candidatesContext->OneHotMaxSize,
+                &candidate.Candidates
+            );
         },
         0,
         candList.ysize(),
@@ -857,18 +765,12 @@ static void CalcBestScoreLeafwise(
                 *candidatesContext,
                 &candidate.Candidates);
 
-            for (size_t subcandidateIdx = 0; subcandidateIdx < candidateScores.size(); ++subcandidateIdx) {
-                AddFeaturePenalties(
-                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->FeatureWeights,
-                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient,
-                    ctx->Params.ObliviousTreeOptions->FeaturePenalties->FirstFeatureUsePenalty,
-                    *ctx->Layout,
-                    ctx->LearnProgress->UsedFeatures,
-                    *data.Learn->ObjectsData,
-                    candidatesContext->OneHotMaxSize,
-                    &candidate.Candidates[subcandidateIdx]
-                );
-            }
+            AddFeaturePenaltiesToBestSplits(
+                ctx,
+                *data.Learn->ObjectsData,
+                candidatesContext->OneHotMaxSize,
+                &candidate.Candidates
+            );
 
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
                 fold->GetCtrRef(splitEnsemble.SplitCandidate.Ctr.Projection).Feature.clear();
