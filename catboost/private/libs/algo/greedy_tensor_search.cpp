@@ -1127,10 +1127,11 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
     while (!queue.empty() && currentStructure.GetLeafCount() < ctx->Params.ObliviousTreeOptions->MaxLeaves) {
         /*
          * There is a problem with feature penalties calculation.
-         * We consider a feature unused until we extracted a split with it from queue.
-         * So while first specific feature use split is still in queue,
-         * we penalize all splits with that feature and can choose wrong best split for these leafs.
-         * However, we keep it this way for code simplicity.
+         * We consider a feature unused until we extracted a split with it from the queue.
+         * Before that, all new splits are calculated with penalty for that feature.
+         * And when first split by this feature is extracted from the queue, all other
+         * splits in the queue should be recalculated without penalty for that feature.
+         * However, we don't do it for performance and code simplicity.
          */
         const TSplitLeafCandidate curSplitLeaf = queue.top();
         queue.pop();
