@@ -3518,13 +3518,13 @@ class CatBoostClassifier(CatBoost):
         Monotone constraints for features.
         
     feature_weights : list or numpy.ndarray or string or dict, [default=None]
-        Coefficient to multiply split gain with specific feature use.
+        Coefficient to multiply split gain with specific feature use. Should be non-negative.
     
     penalties_coefficient : float, [default=1]
-        Common coefficient for all penalties.
+        Common coefficient for all penalties. Should be non-negative.
         
     first_feature_use_penalties : list or numpy.ndarray or string or dict, [default=None]
-        Penalties to first use of specific feature in model
+        Penalties to first use of specific feature in model. Should be non-negative.
 
     sampling_frequency : string, [default=PerTree]
         Frequency to sample weights and objects when building trees.

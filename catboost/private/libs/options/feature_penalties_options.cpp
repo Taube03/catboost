@@ -16,7 +16,7 @@ namespace NCatboostOptions {
         SaveFields(options, FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty);
     }
 
-    static constexpr auto floatRegex = AsStringBuf("([-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)");
+    static constexpr auto nonnegativeFloatRegex = AsStringBuf("([+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)");
 
     static void LeaveOnlyNonTrivialOptions(const float defaultValue, TJsonValue* penaltiesJsonOptions) {
         TJsonValue nonTrivialOptions(EJsonValueType::JSON_MAP);
@@ -34,7 +34,7 @@ namespace NCatboostOptions {
         const float defaultValue,
         NJson::TJsonValue* featurePenaltiesJsonOptions
     ) {
-        ConvertFeatureOptionsToCanonicalFormat<float>(optionName, floatRegex, featurePenaltiesJsonOptions);
+        ConvertFeatureOptionsToCanonicalFormat<float>(optionName, nonnegativeFloatRegex, featurePenaltiesJsonOptions);
         LeaveOnlyNonTrivialOptions(defaultValue, featurePenaltiesJsonOptions);
     }
 
