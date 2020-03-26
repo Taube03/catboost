@@ -1125,6 +1125,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
     subsetsForLeafs[0] = xrange(learnSampleCount).operator TIndexedSubset<ui32>();
 
     while (!queue.empty() && currentStructure.GetLeafCount() < ctx->Params.ObliviousTreeOptions->MaxLeaves) {
+        /*
+         * There is a problem with feature penalties calculation.
+         * We consider a feature unused until we extracted a split with it from queue.
+         * So while first specific feature use split is still in queue,
+         * we penalize all splits with that feature and can choose wrong best split for these leafs.
+         * However, we keep it this way for code simplicity.
+         */
         const TSplitLeafCandidate curSplitLeaf = queue.top();
         queue.pop();
 
