@@ -7,4 +7,5 @@
 #include <util/generic/fwd.h>
 #include <util/generic/map.h>
 
-void ConvertMonotoneConstraintsToCanonicalFormat(NJson::TJsonValue* catBoostJsonOptions);
+NJson::TJsonValue* GetTreeLearnerOptions(NJson::TJsonValue* catBoostJsonOptions);
+void ConvertMonotoneConstraintsToCanonicalFormat(const bool isPlain, NJson::TJsonValue* catBoostJsonOptions);

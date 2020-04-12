@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/target/data_providers.h>
-
+#include <catboost/libs/data/feature_names_converter.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -174,6 +174,7 @@ NJson::TJsonValue GetTrainingOptions(
     NJson::TJsonValue trainOptionsJson;
     NJson::TJsonValue outputFilesOptionsJson;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    ConvertParamsToCanonicalFormat(trainDataMetaInfo, /*isPlain*/ false, &trainOptionsJson);
     NCatboostOptions::TCatBoostOptions catboostOptions(NCatboostOptions::LoadOptions(trainOptionsJson));
     NCatboostOptions::TOption<bool> useBestModelOption("use_best_model", false);
     SetDataDependentDefaults(

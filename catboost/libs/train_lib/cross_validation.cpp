@@ -36,7 +36,6 @@
 #include <cmath>
 #include <numeric>
 
-
 using namespace NCB;
 
 
@@ -848,6 +847,7 @@ void CrossValidate(
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
     ConvertIgnoredFeaturesFromStringToIndices(data.Get()->MetaInfo, &plainJsonParams);
+    ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, /*isPlain*/ true, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     NCatboostOptions::TOutputFilesOptions outputFileOptions;

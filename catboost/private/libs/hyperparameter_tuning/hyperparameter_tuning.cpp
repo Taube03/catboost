@@ -2,6 +2,7 @@
 
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/approx_dimension.h>
+#include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/data/objects_grouping.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/exception.h>
@@ -738,7 +739,7 @@ namespace {
             gridIterator->GetTotalElementsCount(),
             &logger
         );
-        double bestParamsSetMetricValue;
+        double bestParamsSetMetricValue = 0;
         // Other parameters
         NCB::TTrainingDataProviderPtr quantizedData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
@@ -927,7 +928,7 @@ namespace {
             gridIterator->GetTotalElementsCount(),
             &logger
         );
-        double bestParamsSetMetricValue;
+        double bestParamsSetMetricValue = 0;
         // Other parameters
         NCB::TTrainingDataProviders trainTestData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
@@ -1160,7 +1161,7 @@ namespace NCB {
 
     void GridSearch(
         const NJson::TJsonValue& gridJsonValues,
-        const NJson::TJsonValue& modelJsonParams,
+        const NJson::TJsonValue& modelJsonParamsBeforeNormalization,
         const TTrainTestSplitParams& trainTestSplitParams,
         const TCrossValidationParams& cvParams,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -1172,6 +1173,8 @@ namespace NCB {
         bool returnCvStat,
         int verbose) {
 
+        NJson::TJsonValue modelJsonParams = modelJsonParamsBeforeNormalization;
+        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, /*isPlain*/ true, &modelJsonParams);
         // CatBoost options
         NJson::TJsonValue jsonParams;
         NJson::TJsonValue outputJsonParams;
@@ -1291,7 +1294,7 @@ namespace NCB {
         ui32 numberOfTries,
         const THashMap<TString, TCustomRandomDistributionGenerator>& randDistGenerators,
         const NJson::TJsonValue& gridJsonValues,
-        const NJson::TJsonValue& modelJsonParams,
+        const NJson::TJsonValue& modelJsonParamsBeforeNormalization,
         const TTrainTestSplitParams& trainTestSplitParams,
         const TCrossValidationParams& cvParams,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -1303,6 +1306,8 @@ namespace NCB {
         bool returnCvStat,
         int verbose) {
 
+        NJson::TJsonValue modelJsonParams = modelJsonParamsBeforeNormalization;
+        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, /*isPlain*/ true, &modelJsonParams);
         // CatBoost options
         NJson::TJsonValue jsonParams;
         NJson::TJsonValue outputJsonParams;

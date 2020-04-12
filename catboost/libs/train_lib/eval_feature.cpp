@@ -10,6 +10,7 @@
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/preprocess.h>
 #include <catboost/private/libs/algo/train.h>
+#include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
@@ -45,7 +46,6 @@
 
 #include <cmath>
 #include <numeric>
-
 
 using namespace NCB;
 
@@ -620,12 +620,14 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
 
 static void LoadOptions(
     const NJson::TJsonValue& plainJsonParams,
+    const NCB::TDataMetaInfo& metaInfo,
     NCatboostOptions::TCatBoostOptions* catBoostOptions,
     NCatboostOptions::TOutputFilesOptions* outputFileOptions
 ) {
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+    ConvertParamsToCanonicalFormat(metaInfo, /*isPlain*/ false, &jsonParams);
     catBoostOptions->Load(jsonParams);
     outputFileOptions->Load(outputJsonParams);
 
@@ -1147,7 +1149,7 @@ TFeatureEvaluationSummary EvaluateFeatures(
     }
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
-    LoadOptions(plainJsonParams, &catBoostOptions, &outputFileOptions);
+    LoadOptions(plainJsonParams, data.Get()->MetaInfo, &catBoostOptions, &outputFileOptions);
     const auto& absoluteSnapshotPath = MakeAbsolutePath(outputFileOptions.GetSnapshotFilename());
     outputFileOptions.SetSnapshotFilename(absoluteSnapshotPath);
 
