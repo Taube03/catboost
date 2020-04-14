@@ -6976,9 +6976,6 @@ def test_different_formats_of_monotone_constraints_in_different_modes():
         monotone_constraints_string_2,
         monotone_constraints_string_3
     ]:
-        with pytest.raises(CatBoostError):
-            model = CatBoostClassifier(monotone_constraints=monotone_constraints, **common_options)
-            model.fit(train_pool)
         # grid search
         model = CatBoost(dict(common_options, **{'monotone_constraints': monotone_constraints}))
         max_depth_list = [4, 5]
@@ -7017,6 +7014,9 @@ def test_different_formats_of_monotone_constraints_in_different_modes():
         wrong_monotone_constraints_string_2,
         wrong_monotone_constraints_string_3
     ]:
+        with pytest.raises(CatBoostError):
+            model = CatBoostRegressor(monotone_constraints=monotone_constraints, **common_options)
+            model.fit(train_pool)
         with pytest.raises(CatBoostError):
             model = CatBoost({"monotone_constraints": monotone_constraints})
             iterations_list = [5, 10]
