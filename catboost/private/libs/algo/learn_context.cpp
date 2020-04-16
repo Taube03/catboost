@@ -346,7 +346,7 @@ TLearnContext::TLearnContext(
             foldCreationParamsCheckSum,
             /*estimatedFeaturesQuantizationOptions*/
                 params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-            params.ObliviousTreeOptions->FeaturePenalties.Get(),
+            params.ObliviousTreeOptions.Get(),
             initModel,
             initModelApplyCompatiblePools,
             LocalExecutor
@@ -452,7 +452,7 @@ TLearnProgress::TLearnProgress(
     ui32 featuresCheckSum,
     ui32 foldCreationParamsCheckSum,
     const NCatboostOptions::TBinarizationOptions& estimatedFeaturesQuantizationOptions,
-    const NCatboostOptions::TFeaturePenaltiesOptions& featurePenaltiesOptions,
+    const NCatboostOptions::TObliviousTreeLearnerOptions& trainOptions,
     TMaybe<TFullModel*> initModel,
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::TLocalExecutor* localExecutor)
@@ -618,8 +618,12 @@ TLearnProgress::TLearnProgress(
     const auto externalFeaturesCount = data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount();
     const auto objectsCount = data.Learn->ObjectsData->GetObjectCount();
     UsedFeatures.resize(externalFeaturesCount, false);
-    for (const auto [featureIdx, penalty] : featurePenaltiesOptions.PerRowPenalty.Get()) {
-        UsedFeaturesPerRow[featureIdx].resize(objectsCount, false);
+    // for symmetric tree features usage is equal for all objects, so we don't need to store it for specific features
+    if (trainOptions.GrowPolicy.Get() != EGrowPolicy::SymmetricTree) {
+        const auto& featurePenaltiesOptions = trainOptions.FeaturePenalties.Get();
+        for (const auto[featureIdx, penalty] : featurePenaltiesOptions.PerRowPenalty.Get()) {
+            UsedFeaturesPerRow[featureIdx].resize(objectsCount, false);
+        }
     }
 
     EstimatedFeaturesContext.FeatureEstimators = data.FeatureEstimators;
