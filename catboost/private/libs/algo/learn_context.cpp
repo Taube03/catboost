@@ -616,9 +616,10 @@ TLearnProgress::TLearnProgress(
     }
 
     const auto externalFeaturesCount = data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount();
+    const auto objectsCount = data.Learn->ObjectsData->GetObjectCount();
     UsedFeatures.resize(externalFeaturesCount, false);
     for (const auto [featureIdx, penalty] : featurePenaltiesOptions.PerRowPenalty.Get()) {
-        UsedPenalizedFeaturesPerRow[featureIdx].resize(externalFeaturesCount, false);
+        UsedPenalizedFeaturesPerRow[featureIdx].resize(objectsCount, false);
     }
 
     EstimatedFeaturesContext.FeatureEstimators = data.FeatureEstimators;
