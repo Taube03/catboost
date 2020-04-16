@@ -303,6 +303,7 @@ TLearnContext::TLearnContext(
         (initLearnProgress->LearnAndTestQuantizedFeaturesCheckSum == featuresCheckSum) &&
         (initLearnProgress->FoldCreationParamsCheckSum == foldCreationParamsCheckSum) &&
         initLearnProgress->IsFoldsAndApproxDataValid)
+        //TODO(taube): check penalized features consistency?
     {
         CATBOOST_DEBUG_LOG << "Continue with init LearnProgress\n";
 
@@ -345,6 +346,7 @@ TLearnContext::TLearnContext(
             foldCreationParamsCheckSum,
             /*estimatedFeaturesQuantizationOptions*/
                 params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            params.ObliviousTreeOptions->FeaturePenalties.Get(),
             initModel,
             initModelApplyCompatiblePools,
             LocalExecutor
@@ -450,6 +452,7 @@ TLearnProgress::TLearnProgress(
     ui32 featuresCheckSum,
     ui32 foldCreationParamsCheckSum,
     const NCatboostOptions::TBinarizationOptions& estimatedFeaturesQuantizationOptions,
+    const NCatboostOptions::TFeaturePenaltiesOptions& featurePenaltiesOptions,
     TMaybe<TFullModel*> initModel,
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::TLocalExecutor* localExecutor)
@@ -612,7 +615,11 @@ TLearnProgress::TLearnProgress(
         );
     }
 
-    UsedFeatures.resize(data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount(), false);
+    const auto externalFeaturesCount = data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount();
+    UsedFeatures.resize(externalFeaturesCount, false);
+    for (const auto [featureIdx, penalty] : featurePenaltiesOptions.PerRowPenalty.Get()) {
+        UsedPenalizedFeaturesPerRow[featureIdx].resize(externalFeaturesCount, false);
+    }
 
     EstimatedFeaturesContext.FeatureEstimators = data.FeatureEstimators;
     EstimatedFeaturesContext.OfflineEstimatedFeaturesLayout
@@ -736,7 +743,9 @@ void TLearnProgress::Save(IOutputStream* s) const {
         SeparateInitModelTreesSize,
         SeparateInitModelCheckSum,
         Rand,
-        StartingApprox
+        StartingApprox,
+        UsedFeatures,
+        UsedPenalizedFeaturesPerRow
     );
 }
 
@@ -771,7 +780,9 @@ void TLearnProgress::Load(IInputStream* s) {
         SeparateInitModelTreesSize,
         SeparateInitModelCheckSum,
         Rand,
-        StartingApprox
+        StartingApprox,
+        UsedFeatures,
+        UsedPenalizedFeaturesPerRow
     );
 }
 
