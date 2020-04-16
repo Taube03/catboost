@@ -1063,6 +1063,52 @@ static void MarkFeaturesAsUsed(
     split.IterateOverUsedFeatures(estimatedFeaturesContext, markFeatureAsUsed);
 }
 
+static void MarkFeaturesAsUsedPerRow(
+    const TSplit& split,
+    const TIndexedSubset<ui32>& docsSubset,
+    const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
+    const TFeaturesLayout& layout,
+    TMap<ui32, TVector<bool>>* usedFeatures
+) {
+    const auto markFeatureAsUsed = [&docsSubset, &layout, usedFeatures](const int internalFeatureIndex, const EFeatureType type) {
+        const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
+        auto it = usedFeatures->find(externalFeatureIndex);
+        if (it != usedFeatures->end()) { //if we want to keep this feature usage by objects
+            auto& perObjectUsage = it->second;
+            for (const auto idx : docsSubset) {
+                perObjectUsage[idx] = true;
+            }
+        }
+    };
+
+    split.IterateOverUsedFeatures(estimatedFeaturesContext, markFeatureAsUsed);
+}
+
+static void MarkFeaturesAsUsed(
+    const TSplit& split,
+    const TMaybe<TIndexedSubset<ui32>>& docsSubset, //if empty, apply for all objects
+    const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
+    const TFeaturesLayout& layout,
+    TVector<bool>* usedFeatures,
+    TMap<ui32, TVector<bool>>* usedFeaturesPerRow
+) {
+    MarkFeaturesAsUsed(
+        split,
+        estimatedFeaturesContext,
+        layout,
+        usedFeatures
+    );
+    if (docsSubset.Defined()) {
+        MarkFeaturesAsUsedPerRow(
+            split,
+            docsSubset.GetRef(),
+            estimatedFeaturesContext,
+            layout,
+            usedFeaturesPerRow
+        );
+    }
+}
+
 static TSplitTree GreedyTensorSearchOblivious(
     const TTrainingDataProviders& data,
     double modelLength,
@@ -1117,9 +1163,12 @@ static TSplitTree GreedyTensorSearchOblivious(
 
         MarkFeaturesAsUsed(
             bestSplit,
+            /*docsSubset*/ Nothing(),
             ctx->LearnProgress->EstimatedFeaturesContext,
             *ctx->Layout,
-            &ctx->LearnProgress->UsedFeatures);
+            &ctx->LearnProgress->UsedFeatures,
+            &ctx->LearnProgress->UsedFeaturesPerRow
+        );
 
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             SetPermutedIndices(
@@ -1255,14 +1304,18 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             ProcessCtrSplit(data, bestSplit, fold, ctx);
         }
+
+        const TIndexType splittedNodeIdx = curSplitLeaf.Leaf;
         MarkFeaturesAsUsed(
             bestSplit,
+            subsetsForLeafs[splittedNodeIdx],
             ctx->LearnProgress->EstimatedFeaturesContext,
             *ctx->Layout,
-            &ctx->LearnProgress->UsedFeatures);
+            &ctx->LearnProgress->UsedFeatures,
+            &ctx->LearnProgress->UsedFeaturesPerRow
+        );
 
         const auto& node = currentStructure.AddSplit(bestSplit, curSplitLeaf.Leaf);
-        const TIndexType splittedNodeIdx = curSplitLeaf.Leaf;
         const TIndexType leftChildIdx = ~node.Left;
         const TIndexType rightChildIdx = ~node.Right;
         UpdateIndices(
@@ -1359,9 +1412,12 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             }
             MarkFeaturesAsUsed(
                 bestSplit,
+                subsetsForLeafs[leafToSplit],
                 ctx->LearnProgress->EstimatedFeaturesContext,
                 *ctx->Layout,
-                &ctx->LearnProgress->UsedFeatures);
+                &ctx->LearnProgress->UsedFeatures,
+                &ctx->LearnProgress->UsedFeaturesPerRow
+            );
 
             const auto& node = currentStructure.AddSplit(bestSplit, leafToSplit);
             const TIndexType leftChildIdx = ~node.Left;

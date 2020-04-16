@@ -619,7 +619,7 @@ TLearnProgress::TLearnProgress(
     const auto objectsCount = data.Learn->ObjectsData->GetObjectCount();
     UsedFeatures.resize(externalFeaturesCount, false);
     for (const auto [featureIdx, penalty] : featurePenaltiesOptions.PerRowPenalty.Get()) {
-        UsedPenalizedFeaturesPerRow[featureIdx].resize(objectsCount, false);
+        UsedFeaturesPerRow[featureIdx].resize(objectsCount, false);
     }
 
     EstimatedFeaturesContext.FeatureEstimators = data.FeatureEstimators;
@@ -746,7 +746,7 @@ void TLearnProgress::Save(IOutputStream* s) const {
         Rand,
         StartingApprox,
         UsedFeatures,
-        UsedPenalizedFeaturesPerRow
+        UsedFeaturesPerRow
     );
 }
 
@@ -783,7 +783,7 @@ void TLearnProgress::Load(IInputStream* s) {
         Rand,
         StartingApprox,
         UsedFeatures,
-        UsedPenalizedFeaturesPerRow
+        UsedFeaturesPerRow
     );
 }
 
