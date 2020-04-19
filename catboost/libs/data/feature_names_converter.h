@@ -27,6 +27,9 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const TSource& matchingSource
     if (penaltiesRef.Has("first_feature_use_penalties")) {
         ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["first_feature_use_penalties"]);
     }
+    if (penaltiesRef.Has("per_row_penalties")) {
+        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["per_row_penalties"]);
+    }
 }
 
 void ConvertIgnoredFeaturesFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);

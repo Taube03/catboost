@@ -252,7 +252,8 @@
         "penalties" : {
             "first_feature_use_penalties" : { },
             "feature_weights" : { },
-            "penalties_coefficient" : 1
+            "penalties_coefficient" : 1,
+            "per_row_penalties" : { }
         },
         "leaf_estimation_iterations" : 1,
         "sparse_features_conflict_fraction" : 0

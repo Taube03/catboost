@@ -1493,6 +1493,9 @@ def _check_param_types(params):
     if 'first_feature_use_penalties' in params:
         if not isinstance(params['first_feature_use_penalties'], STRING_TYPES + ARRAY_TYPES + (dict,)):
             raise CatBoostError("Invalid `first_feature_use_penalties` type={} : must be string or list of floats or dict.".format(type(param)))
+    if 'per_row_penalties' in params:
+        if not isinstance(params['per_row_penalties'], STRING_TYPES + ARRAY_TYPES + (dict,)):
+            raise CatBoostError("Invalid `per_row_penalties` type={} : must be string or list of floats or dict.".format(type(param)))
 
 
 def _params_type_cast(params):
@@ -3577,6 +3580,9 @@ class CatBoostClassifier(CatBoost):
     first_feature_use_penalties : list or numpy.ndarray or string or dict, [default=None]
         Penalties to first use of specific feature in model. Should be non-negative.
 
+    per_row_penalties : list or numpy.ndarray or string or dict, [default=None]
+        Penalties for first use of feature in specific row in model. Should be non-negative.
+
     sampling_frequency : string, [default=PerTree]
         Frequency to sample weights and objects when building trees.
         Possible values:
@@ -3846,6 +3852,7 @@ class CatBoostClassifier(CatBoost):
         feature_weights=None,
         penalties_coefficient=None,
         first_feature_use_penalties=None,
+        per_row_penalties=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
         langevin=None,
@@ -4399,6 +4406,7 @@ class CatBoostRegressor(CatBoost):
         feature_weights=None,
         penalties_coefficient=None,
         first_feature_use_penalties=None,
+        per_row_penalties=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
         langevin=None,

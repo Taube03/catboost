@@ -708,6 +708,7 @@ static void CalcBestScore(
                 &candidate.Candidates);
 
             AddFeaturePenaltiesToBestSplits(
+                xrange(ctx->SampledDocs.LeavesCount),
                 *ctx,
                 data,
                 *fold,
@@ -810,6 +811,7 @@ static void CalcBestScoreLeafwise(
                 &candidate.Candidates);
 
             AddFeaturePenaltiesToBestSplits(
+                leafs,
                 *ctx,
                 data,
                 *fold,
