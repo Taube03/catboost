@@ -7777,12 +7777,16 @@ def test_pool_load_and_quantize_unknown_param():
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def test_quantize_unknown_param():
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     with pytest.raises(CatBoostError):
         pool.quantize(this_param_is_unknown=123)
 =======
     common_options = dict(iterations=50)
+=======
+    common_options = dict(iterations=10)
+>>>>>>> Fix tests
     model1 = CatBoostClassifier(per_row_penalties=per_row_feature_penalties_array, **common_options)
     model1.fit(train_pool)
     predictions1 = model1.predict(test_pool)
