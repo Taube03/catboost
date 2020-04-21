@@ -689,6 +689,7 @@ namespace {
     }
 
     bool ParseJsonParams(
+        const NCB::TDataMetaInfo& metaInfo,
         const NJson::TJsonValue& modelParamsToBeTried,
         NCatboostOptions::TCatBoostOptions *catBoostOptions,
         NCatboostOptions::TOutputFilesOptions *outputFileOptions) {
@@ -696,6 +697,7 @@ namespace {
             NJson::TJsonValue jsonParams;
             NJson::TJsonValue outputJsonParams;
             NCatboostOptions::PlainJsonToOptions(modelParamsToBeTried, &jsonParams, &outputJsonParams);
+            ConvertParamsToCanonicalFormat(metaInfo, &outputJsonParams);
             *catBoostOptions = NCatboostOptions::LoadOptions(jsonParams);
             outputFileOptions->Load(outputJsonParams);
 
@@ -767,7 +769,12 @@ namespace {
 
             NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            bool areParamsValid = ParseJsonParams(*modelParamsToBeTried, &catBoostOptions, &outputFileOptions);
+            bool areParamsValid = ParseJsonParams(
+                data.Get()->MetaInfo,
+                *modelParamsToBeTried,
+                &catBoostOptions,
+                &outputFileOptions
+            );
             if (!areParamsValid) {
                 continue;
             }
@@ -956,7 +963,12 @@ namespace {
 
             NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            bool areParamsValid = ParseJsonParams(*modelParamsToBeTried, &catBoostOptions, &outputFileOptions);
+            bool areParamsValid = ParseJsonParams(
+                data.Get()->MetaInfo,
+                *modelParamsToBeTried,
+                &catBoostOptions,
+                &outputFileOptions
+            );
             if (!areParamsValid) {
                 continue;
             }
@@ -1174,11 +1186,11 @@ namespace NCB {
         int verbose) {
 
         NJson::TJsonValue modelJsonParams = modelJsonParamsBeforeNormalization;
-        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, /*isPlain*/ true, &modelJsonParams);
         // CatBoost options
         NJson::TJsonValue jsonParams;
         NJson::TJsonValue outputJsonParams;
         NCatboostOptions::PlainJsonToOptions(modelJsonParams, &jsonParams, &outputJsonParams);
+        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &outputJsonParams);
         NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
         NCatboostOptions::TOutputFilesOptions outputFileOptions;
         outputFileOptions.Load(outputJsonParams);
@@ -1307,11 +1319,11 @@ namespace NCB {
         int verbose) {
 
         NJson::TJsonValue modelJsonParams = modelJsonParamsBeforeNormalization;
-        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, /*isPlain*/ true, &modelJsonParams);
         // CatBoost options
         NJson::TJsonValue jsonParams;
         NJson::TJsonValue outputJsonParams;
         NCatboostOptions::PlainJsonToOptions(modelJsonParams, &jsonParams, &outputJsonParams);
+        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &outputJsonParams);
         NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
         NCatboostOptions::TOutputFilesOptions outputFileOptions;
         outputFileOptions.Load(outputJsonParams);
