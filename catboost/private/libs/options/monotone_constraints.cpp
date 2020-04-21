@@ -24,26 +24,12 @@ static void LeaveOnlyNonTrivialConstraints(TJsonValue* monotoneConstraintsJsonOp
     *monotoneConstraintsJsonOptions = nonTrivialConstraints;
 }
 
-NJson::TJsonValue* GetTreeLearnerOptions(NJson::TJsonValue* catBoostJsonOptions) {
-    if (!catBoostJsonOptions->Has("tree_learner_options")) {
-        return nullptr;
-    }
-    return  &(*catBoostJsonOptions)["tree_learner_options"];
-}
-
-void ConvertMonotoneConstraintsToCanonicalFormat(const bool isPlain, TJsonValue* catBoostJsonOptions) {
-    NJson::TJsonValue* optionsStorage = (isPlain ? catBoostJsonOptions : GetTreeLearnerOptions(catBoostJsonOptions));
-    if (!optionsStorage) {
-        return;
-    }
-    auto& treeOptions = *optionsStorage;
-
+void ConvertMonotoneConstraintsToCanonicalFormat(TJsonValue* catBoostJsonOptions) {
+    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
     if (!treeOptions.Has("monotone_constraints")) {
         return;
     }
     TJsonValue& constraintsRef = treeOptions["monotone_constraints"];
-    ConvertFeatureOptionsToCanonicalFormat<int>(AsStringBuf("monotone_constraints"),
-                                                constraintRegex,
-                                                &constraintsRef);
+    ConvertFeatureOptionsToCanonicalFormat<int>(AsStringBuf("monotone_constraints"), constraintRegex, &constraintsRef);
     LeaveOnlyNonTrivialConstraints(&constraintsRef);
 }

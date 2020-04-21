@@ -38,20 +38,13 @@ namespace NCatboostOptions {
         LeaveOnlyNonTrivialOptions(defaultValue, featurePenaltiesJsonOptions);
     }
 
-    NJson::TJsonValue* GetPenaltiesOptions(NJson::TJsonValue* catBoostJsonOptions) {
-        if (!catBoostJsonOptions->Has("tree_learner_options")) {
-            return nullptr;
-        }
+    void ConvertAllFeaturePenaltiesToCanonicalFormat(NJson::TJsonValue* catBoostJsonOptions) {
         auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
-        return (treeOptions.Has("penalties") ? &treeOptions["penalties"] : nullptr);
-    }
-
-    void ConvertAllFeaturePenaltiesToCanonicalFormat(const bool isPlain, NJson::TJsonValue* catBoostJsonOptions) {
-        NJson::TJsonValue* optionsStorage = (isPlain ? catBoostJsonOptions : NCatboostOptions::GetPenaltiesOptions(catBoostJsonOptions));
-        if (!optionsStorage) {
+        if (!treeOptions.Has("penalties")) {
             return;
         }
-        auto& penaltiesRef = *optionsStorage;
+
+        TJsonValue& penaltiesRef = treeOptions["penalties"];
 
         if (penaltiesRef.Has("feature_weights")) {
             ConvertFeaturePenaltiesToCanonicalFormat(

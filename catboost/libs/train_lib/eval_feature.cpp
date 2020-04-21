@@ -627,7 +627,7 @@ static void LoadOptions(
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
-    ConvertParamsToCanonicalFormat(metaInfo, /*isPlain*/ false, &jsonParams);
+    ConvertParamsToCanonicalFormat(metaInfo, &jsonParams);
     catBoostOptions->Load(jsonParams);
     outputFileOptions->Load(outputJsonParams);
 

@@ -43,7 +43,5 @@ namespace NCatboostOptions {
         //TODO(taube): add more penalties
     };
 
-    NJson::TJsonValue* GetPenaltiesOptions(NJson::TJsonValue* catBoostJsonOptions);
-
-    void ConvertAllFeaturePenaltiesToCanonicalFormat(const bool isPlain, NJson::TJsonValue* catBoostJsonOptions);
+    void ConvertAllFeaturePenaltiesToCanonicalFormat(NJson::TJsonValue* catBoostJsonOptions);
 }

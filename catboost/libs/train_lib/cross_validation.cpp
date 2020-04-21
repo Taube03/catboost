@@ -499,6 +499,7 @@ void CrossValidate(
     NJson::TJsonValue outputJsonParams;
     ConvertIgnoredFeaturesFromStringToIndices(trainingData.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+    ConvertParamsToCanonicalFormat(trainingData.Get()->MetaInfo, &outputJsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
@@ -847,8 +848,8 @@ void CrossValidate(
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
     ConvertIgnoredFeaturesFromStringToIndices(data.Get()->MetaInfo, &plainJsonParams);
-    ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, /*isPlain*/ true, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+    ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &outputJsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);

@@ -174,7 +174,7 @@ NJson::TJsonValue GetTrainingOptions(
     NJson::TJsonValue trainOptionsJson;
     NJson::TJsonValue outputFilesOptionsJson;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
-    ConvertParamsToCanonicalFormat(trainDataMetaInfo, /*isPlain*/ false, &trainOptionsJson);
+    ConvertParamsToCanonicalFormat(trainDataMetaInfo, &trainOptionsJson);
     NCatboostOptions::TCatBoostOptions catboostOptions(NCatboostOptions::LoadOptions(trainOptionsJson));
     NCatboostOptions::TOption<bool> useBestModelOption("use_best_model", false);
     SetDataDependentDefaults(

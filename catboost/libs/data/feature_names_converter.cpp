@@ -153,6 +153,32 @@ void ConvertPerFeatureOptionsFromStringToIndices(const TMap<TString, ui32>& indi
     }
 }
 
+static inline void ConvertPerFeatureOptionsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* options) {
+    ConvertPerFeatureOptionsFromStringToIndices(MakeIndicesFromNames(metaInfo), options);
+}
+
+static inline void ConvertPerFeatureOptionsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* options) {
+    ConvertPerFeatureOptionsFromStringToIndices(MakeIndicesFromNames(poolLoadParams), options);
+}
+
+void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions) {
+    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
+    if (!treeOptions.Has("monotone_constraints")) {
+        return;
+    }
+
+    ConvertPerFeatureOptionsFromStringToIndices(metaInfo, &treeOptions["monotone_constraints"]);
+}
+
+void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
+    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
+    if (!treeOptions.Has("monotone_constraints")) {
+        return;
+    }
+
+    ConvertPerFeatureOptionsFromStringToIndices(poolLoadParams, &treeOptions["monotone_constraints"]);
+}
+
 ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
     if (IsNumber(nameOrIndex)) {
         return FromString<ui32>(nameOrIndex);
