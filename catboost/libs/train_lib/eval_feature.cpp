@@ -47,6 +47,7 @@
 #include <cmath>
 #include <numeric>
 
+
 using namespace NCB;
 
 

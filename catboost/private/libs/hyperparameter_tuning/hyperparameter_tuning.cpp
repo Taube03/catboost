@@ -697,7 +697,7 @@ namespace {
             NJson::TJsonValue jsonParams;
             NJson::TJsonValue outputJsonParams;
             NCatboostOptions::PlainJsonToOptions(modelParamsToBeTried, &jsonParams, &outputJsonParams);
-            ConvertParamsToCanonicalFormat(metaInfo, &outputJsonParams);
+            ConvertParamsToCanonicalFormat(metaInfo, &jsonParams);
             *catBoostOptions = NCatboostOptions::LoadOptions(jsonParams);
             outputFileOptions->Load(outputJsonParams);
 
@@ -1173,7 +1173,7 @@ namespace NCB {
 
     void GridSearch(
         const NJson::TJsonValue& gridJsonValues,
-        const NJson::TJsonValue& modelJsonParamsBeforeNormalization,
+        const NJson::TJsonValue& modelJsonParams,
         const TTrainTestSplitParams& trainTestSplitParams,
         const TCrossValidationParams& cvParams,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -1185,12 +1185,11 @@ namespace NCB {
         bool returnCvStat,
         int verbose) {
 
-        NJson::TJsonValue modelJsonParams = modelJsonParamsBeforeNormalization;
         // CatBoost options
         NJson::TJsonValue jsonParams;
         NJson::TJsonValue outputJsonParams;
         NCatboostOptions::PlainJsonToOptions(modelJsonParams, &jsonParams, &outputJsonParams);
-        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &outputJsonParams);
+        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &jsonParams);
         NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
         NCatboostOptions::TOutputFilesOptions outputFileOptions;
         outputFileOptions.Load(outputJsonParams);
@@ -1306,7 +1305,7 @@ namespace NCB {
         ui32 numberOfTries,
         const THashMap<TString, TCustomRandomDistributionGenerator>& randDistGenerators,
         const NJson::TJsonValue& gridJsonValues,
-        const NJson::TJsonValue& modelJsonParamsBeforeNormalization,
+        const NJson::TJsonValue& modelJsonParams,
         const TTrainTestSplitParams& trainTestSplitParams,
         const TCrossValidationParams& cvParams,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -1318,12 +1317,11 @@ namespace NCB {
         bool returnCvStat,
         int verbose) {
 
-        NJson::TJsonValue modelJsonParams = modelJsonParamsBeforeNormalization;
         // CatBoost options
         NJson::TJsonValue jsonParams;
         NJson::TJsonValue outputJsonParams;
         NCatboostOptions::PlainJsonToOptions(modelJsonParams, &jsonParams, &outputJsonParams);
-        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &outputJsonParams);
+        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &jsonParams);
         NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
         NCatboostOptions::TOutputFilesOptions outputFileOptions;
         outputFileOptions.Load(outputJsonParams);

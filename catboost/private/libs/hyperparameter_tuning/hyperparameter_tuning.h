@@ -46,7 +46,7 @@ namespace NCB {
 
     void GridSearch(
         const NJson::TJsonValue& gridJsonValues,
-        const NJson::TJsonValue& modelJsonParamsBeforeNormalization,
+        const NJson::TJsonValue& modelJsonParams,
         const TTrainTestSplitParams& trainTestSplitParams,
         const TCrossValidationParams& cvParams,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
