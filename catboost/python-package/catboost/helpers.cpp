@@ -8,6 +8,7 @@
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/target/data_providers.h>
 
+
 extern "C" PyObject* PyCatboostExceptionType;
 
 void ProcessException() {
