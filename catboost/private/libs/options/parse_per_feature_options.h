@@ -8,7 +8,6 @@
 
 #include <util/generic/map.h>
 #include <util/generic/strbuf.h>
-#include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
 
@@ -22,22 +21,14 @@ namespace NCatboostOptions {
         return FromJson<TFeatureOptionType>(option);
     }
 
-    inline bool CheckOptionValue(const TJsonValue& option, const std::regex& featureOptionRegex) {
-        if (option.IsNull()) {
-            return false;
-        }
-        const auto optionStr = option.GetStringRobust();
-        return std::regex_match(optionStr.data(), featureOptionRegex);
-    }
-
     std::regex GetDenseFormatPattern(const TStringBuf featureOptionRegex); // like: (1,0,0,-1,0)
 
     std::regex GetSparseFormatPattern(const TStringBuf featureOptionRegex); // like: 0:1,3:-1 or FeatureName1:-1,FeatureName2:-1
 
     template<typename TFeatureOptionType>
     TMap<TString, TFeatureOptionType> ParsePerFeatureOptionsFromString(const TString& options,
-                                                                       const TStringBuf featureOptionRegex,
-                                                                       const TString& errorStr) {
+                                                                       const TStringBuf optionName,
+                                                                       const TStringBuf featureOptionRegex) {
         TMap<TString, TFeatureOptionType> optionsAsMap;
         std::regex denseFormat = GetDenseFormatPattern(featureOptionRegex);
         std::regex sparseFormat = GetSparseFormatPattern(featureOptionRegex);
@@ -59,26 +50,21 @@ namespace NCatboostOptions {
                 optionsAsMap[feature] = value;
             }
         } else {
-            CB_ENSURE(false, errorStr);
+            CB_ENSURE(false,
+                      "Incorrect format of " << optionName << ". Possible formats: \"(1,0,0,-1)\", \"0:1,3:-1\", \"FeatureName1:-1,FeatureName2:-1\".");
         }
         return optionsAsMap;
     }
 
     template<typename TFeatureOptionType>
-    void ConvertFeatureOptionsToCanonicalFormat(const TStringBuf optionName, const TStringBuf optionRegexStr, TJsonValue* optionsRef) {
+    void ConvertFeatureOptionsToCanonicalFormat(const TStringBuf optionName, const TStringBuf optionRegex, TJsonValue* optionsRef) {
         TJsonValue canonicalOptions(EJsonValueType::JSON_MAP);
-        std::regex optionRegex(optionRegexStr.data());
-        const TString errorStr = TStringBuilder{} <<
-            "Incorrect format of " << optionName << ". " <<
-            "Possible formats: \"(1,0,0,1)\", \"0:1,3:1\", \"FeatureName1:1,FeatureName2:1\". " <<
-            "The given examples give an overall idea of the supported format. " <<
-            "Refer to the description of the parameter for the information on supported values.";
         switch (optionsRef->GetType()) {
             case NJson::EJsonValueType::JSON_STRING: {
                 TMap<TString, TFeatureOptionType> optionsAsMap = ParsePerFeatureOptionsFromString<TFeatureOptionType>(
                     optionsRef->GetString(),
-                    optionRegexStr,
-                    errorStr
+                    optionName,
+                    optionRegex
                 );
                 for (const auto& [key, value] : optionsAsMap) {
                     canonicalOptions.InsertValue(key, value);
@@ -88,7 +74,6 @@ namespace NCatboostOptions {
             case NJson::EJsonValueType::JSON_ARRAY: {
                 ui32 featureIdx = 0;
                 for (const auto& option : optionsRef->GetArray()) {
-                    CB_ENSURE(CheckOptionValue(option, optionRegex), errorStr);
                     auto value = GetOptionValue<TFeatureOptionType>(option);
                     canonicalOptions.InsertValue(ToString(featureIdx), value);
                     featureIdx++;
@@ -96,15 +81,15 @@ namespace NCatboostOptions {
             }
                 break;
             case NJson::EJsonValueType::JSON_MAP: {
+                TMap<TString, int> optionsAsMap;
                 for (const auto& [feature, option] : optionsRef->GetMap()) {
-                    CB_ENSURE(CheckOptionValue(option, optionRegex), errorStr);
                     auto value = GetOptionValue<TFeatureOptionType>(option);
                     canonicalOptions.InsertValue(feature, value);
                 }
             }
                 break;
             default:
-                CB_ENSURE(false, errorStr);
+                CB_ENSURE(false, "Incorrect options format");
         }
 
         *optionsRef = canonicalOptions;

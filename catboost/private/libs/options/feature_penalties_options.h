@@ -44,4 +44,6 @@ namespace NCatboostOptions {
     };
 
     void ConvertAllFeaturePenaltiesToCanonicalFormat(NJson::TJsonValue* catBoostJsonOptions);
+
+    void ValidateFeaturePenaltiesOptions(const TFeaturePenaltiesOptions& options);
 }

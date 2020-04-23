@@ -669,6 +669,10 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
     }
 
+    if (ObliviousTreeOptions->FeaturePenalties.IsSet()) {
+        ValidateFeaturePenaltiesOptions(ObliviousTreeOptions->FeaturePenalties.Get());
+    }
+
     if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
         CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
             "Ordered boosting is not supported for nonsymmetric trees.");
