@@ -70,11 +70,11 @@ namespace NCatboostOptions {
 
     void ValidateFeaturePenaltiesOptions(const TFeaturePenaltiesOptions& options) {
         const TPerFeaturePenalty& featureWeights = options.FeatureWeights.Get();
-        if (featureWeights.empty()) {
+        if (!featureWeights.empty()) {
             ValidateFeatureSinglePenaltiesOption(featureWeights, "feature_weights");
         }
         const TPerFeaturePenalty& firstFeatureUsePenalties = options.FirstFeatureUsePenalty.Get();
-        if (firstFeatureUsePenalties.empty()) {
+        if (!firstFeatureUsePenalties.empty()) {
             ValidateFeatureSinglePenaltiesOption(firstFeatureUsePenalties, "first_feature_use_penalties");
         }
     }
