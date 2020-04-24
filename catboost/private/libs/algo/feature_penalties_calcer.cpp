@@ -176,7 +176,7 @@ namespace NCB {
         const TFeaturesLayout& layout = *ctx.Layout;
         const TVector<bool>& usedFeatures = ctx.LearnProgress->UsedFeatures;
         const auto& usedFeaturesPerObject = ctx.LearnProgress->UsedFeaturesPerObject;
-        TPerObjectFeaturePenaltiesCalcer perRowFeaturePenaltiesCalcer(
+        TPerObjectFeaturePenaltiesCalcer perObjectFeaturePenaltiesCalcer(
             perObjectPenalty,
             ctx.Params.ObliviousTreeOptions->GrowPolicy == EGrowPolicy::SymmetricTree,
             usedFeatures,
