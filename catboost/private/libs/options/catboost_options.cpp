@@ -669,7 +669,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
     }
 
-    if (ObliviousTreeOptions->FeaturePenalties.IsSet()) {
+    if (GetTaskType() == ETaskType::CPU && ObliviousTreeOptions->FeaturePenalties.IsSet()) {
         ValidateFeaturePenaltiesOptions(ObliviousTreeOptions->FeaturePenalties.Get());
     }
 
