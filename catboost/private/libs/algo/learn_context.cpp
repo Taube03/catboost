@@ -621,8 +621,8 @@ TLearnProgress::TLearnProgress(
     // for symmetric tree features usage is equal for all objects, so we don't need to store it for specific features
     if (trainOptions.GrowPolicy.Get() != EGrowPolicy::SymmetricTree) {
         const auto& featurePenaltiesOptions = trainOptions.FeaturePenalties.Get();
-        for (const auto[featureIdx, penalty] : featurePenaltiesOptions.PerRowPenalty.Get()) {
-            UsedFeaturesPerRow[featureIdx].resize(objectsCount, false);
+        for (const auto[featureIdx, penalty] : featurePenaltiesOptions.PerObjectFeaturePenalty.Get()) {
+            UsedFeaturesPerObject[featureIdx].resize(objectsCount, false);
         }
     }
 
@@ -750,7 +750,7 @@ void TLearnProgress::Save(IOutputStream* s) const {
         Rand,
         StartingApprox,
         UsedFeatures,
-        UsedFeaturesPerRow
+        UsedFeaturesPerObject
     );
 }
 
@@ -787,7 +787,7 @@ void TLearnProgress::Load(IInputStream* s) {
         Rand,
         StartingApprox,
         UsedFeatures,
-        UsedFeaturesPerRow
+        UsedFeaturesPerObject
     );
 }
 

@@ -27,8 +27,8 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const TSource& matchingSource
     if (penaltiesRef.Has("first_feature_use_penalties")) {
         ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["first_feature_use_penalties"]);
     }
-    if (penaltiesRef.Has("per_row_penalties")) {
-        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["per_row_penalties"]);
+    if (penaltiesRef.Has("per_object_feature_penalties")) {
+        ConvertPerFeatureOptionsFromStringToIndices(namesToIndicesMap, &penaltiesRef["per_object_feature_penalties"]);
     }
 }
 

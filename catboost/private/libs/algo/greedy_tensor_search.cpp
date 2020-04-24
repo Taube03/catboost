@@ -1065,7 +1065,7 @@ static void MarkFeaturesAsUsed(
     split.IterateOverUsedFeatures(estimatedFeaturesContext, markFeatureAsUsed);
 }
 
-static void MarkFeaturesAsUsedPerRow(
+static void MarkFeaturesAsUsedPerObject(
     const TSplit& split,
     const TIndexedSubset<ui32>& docsSubset,
     const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
@@ -1092,7 +1092,7 @@ static void MarkFeaturesAsUsed(
     const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
     const TFeaturesLayout& layout,
     TVector<bool>* usedFeatures,
-    TMap<ui32, TVector<bool>>* usedFeaturesPerRow
+    TMap<ui32, TVector<bool>>* usedFeaturesPerObject
 ) {
     MarkFeaturesAsUsed(
         split,
@@ -1101,12 +1101,12 @@ static void MarkFeaturesAsUsed(
         usedFeatures
     );
     if (docsSubset.Defined()) {
-        MarkFeaturesAsUsedPerRow(
+        MarkFeaturesAsUsedPerObject(
             split,
             docsSubset.GetRef(),
             estimatedFeaturesContext,
             layout,
-            usedFeaturesPerRow
+            usedFeaturesPerObject
         );
     }
 }
@@ -1169,7 +1169,7 @@ static TSplitTree GreedyTensorSearchOblivious(
             ctx->LearnProgress->EstimatedFeaturesContext,
             *ctx->Layout,
             &ctx->LearnProgress->UsedFeatures,
-            &ctx->LearnProgress->UsedFeaturesPerRow
+            &ctx->LearnProgress->UsedFeaturesPerObject
         );
 
         if (ctx->Params.SystemOptions->IsSingleHost()) {
@@ -1314,7 +1314,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
             ctx->LearnProgress->EstimatedFeaturesContext,
             *ctx->Layout,
             &ctx->LearnProgress->UsedFeatures,
-            &ctx->LearnProgress->UsedFeaturesPerRow
+            &ctx->LearnProgress->UsedFeaturesPerObject
         );
 
         const auto& node = currentStructure.AddSplit(bestSplit, curSplitLeaf.Leaf);
@@ -1418,7 +1418,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
                 ctx->LearnProgress->EstimatedFeaturesContext,
                 *ctx->Layout,
                 &ctx->LearnProgress->UsedFeatures,
-                &ctx->LearnProgress->UsedFeaturesPerRow
+                &ctx->LearnProgress->UsedFeaturesPerObject
             );
 
             const auto& node = currentStructure.AddSplit(bestSplit, leafToSplit);

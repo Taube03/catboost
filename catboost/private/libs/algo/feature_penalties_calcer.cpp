@@ -65,20 +65,20 @@ namespace NCB {
         return result;
     }
 
-    class TPerRowFeaturePenaltiesCalcer {
+    class TPerObjectFeaturePenaltiesCalcer {
     public:
-        explicit TPerRowFeaturePenaltiesCalcer(
+        explicit TPerObjectFeaturePenaltiesCalcer(
             const NCatboostOptions::TPerFeaturePenalty& penalties,
             const bool areFeatureUsagesEqualForAllObjects, //for symmetric trees
             const TVector<bool>& usedFeatures,
-            const TMap<ui32, TVector<bool>>& usedFeaturesPerRow,
+            const TMap<ui32, TVector<bool>>& usedFeaturesPerObject,
             const TCalcScoreFold& calcScoreFold,
             const TVector<TIndexType>& leaves
         )
             : Penalties(penalties)
             , AreFeatureUsagesEqualForAllObjects(areFeatureUsagesEqualForAllObjects)
             , UsedFeatures(usedFeatures)
-            , UsedFeaturesPerRow(usedFeaturesPerRow)
+            , UsedFeaturesPerObject(usedFeaturesPerObject)
             , CalcScoreFold(calcScoreFold)
             , Leaves(leaves)
         {
@@ -99,65 +99,59 @@ namespace NCB {
             if (penaltyIt == Penalties.end()) { //not penalized
                 return NCatboostOptions::DEFAULT_FEATURE_PENALTY;
             }
-            const auto penaltyPerObject = penaltyIt->second;
+            const float penaltyPerObject = penaltyIt->second;
 
-            float penaltySum = 0;
-
+            ui64 objectsCount = 0;
             if (AreFeatureUsagesEqualForAllObjects) {
                 if (!UsedFeatures[externalFeatureIdx]) {
-                    //TODO(taube): calculate this sum for each leaf in advance
-                    const auto& learnWeights = CalcScoreFold.GetLearnWeights();
                     for (const auto leafNumber : Leaves) {
                         const auto& leafBounds = CalcScoreFold.LeavesBounds[leafNumber];
-                        for (const auto idxInCalcScoreFold : xrange(leafBounds.Begin, leafBounds.End)) {
-                            penaltySum += learnWeights[idxInCalcScoreFold];
-                        }
+                        objectsCount += leafBounds.End - leafBounds.Begin;
                     }
                 }
             } else {
-                auto it = UsedFeaturesPerRow.find(externalFeatureIdx);
+                auto it = UsedFeaturesPerObject.find(externalFeatureIdx);
                 CB_ENSURE_INTERNAL(
-                    it != UsedFeaturesPerRow.end(),
+                    it != UsedFeaturesPerObject.end(),
                     "No feature usage stat for penalized feature number " << externalFeatureIdx
                 );
                 const auto& featureUsage = it->second;
-                const auto& learnWeights = CalcScoreFold.GetLearnWeights();
                 for (const auto leafNumber : Leaves) {
                     const auto& leafBounds = CalcScoreFold.LeavesBounds[leafNumber];
                     for (const auto idxInCalcScoreFold : xrange(leafBounds.Begin, leafBounds.End)) {
                         const auto globalObjectIdx = CalcScoreFold.IndexInFold[idxInCalcScoreFold];
                         if (!featureUsage[globalObjectIdx]) {
-                            penaltySum += learnWeights[idxInCalcScoreFold];
+                            ++objectsCount;
                         }
                     }
                 }
             }
 
-            penaltySum *= penaltyPerObject;
+            const float penaltySum = penaltyPerObject * objectsCount;
             return penaltySum;
         }
 
         const NCatboostOptions::TPerFeaturePenalty& Penalties;
         const bool AreFeatureUsagesEqualForAllObjects;
         const TVector<bool>& UsedFeatures;
-        const TMap<ui32, TVector<bool>>& UsedFeaturesPerRow;
+        const TMap<ui32, TVector<bool>>& UsedFeaturesPerObject;
         const TCalcScoreFold& CalcScoreFold;
         const TVector<TIndexType>& Leaves;
         TMap<ui32, float> PenaltySum;
     };
 
-    static float GetSplitPerRowPenalty(
+    static float GetSplitPerObjectPenalty(
         const TSplit& split,
         const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
         const TFeaturesLayout& layout,
         const float penaltiesCoefficient,
-        TPerRowFeaturePenaltiesCalcer* perRowFeaturePenaltiesCalcer
+        TPerObjectFeaturePenaltiesCalcer* perObjectFeaturePenaltiesCalcer
     ) {
         float result = 0;
 
         const auto addPenaltyFunc = [&](const int internalFeatureIdx, const EFeatureType type) {
             const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIdx, type);
-            result += perRowFeaturePenaltiesCalcer->GetPenalty(externalFeatureIndex);
+            result += perObjectFeaturePenaltiesCalcer->GetPenalty(externalFeatureIndex);
         };
         split.IterateOverUsedFeatures(estimatedFeaturesContext, addPenaltyFunc);
 
@@ -177,19 +171,16 @@ namespace NCB {
         const NCatboostOptions::TPerFeaturePenalty& featureWeights = featurePenaltiesOptions.FeatureWeights;
         const float penaltiesCoefficient = featurePenaltiesOptions.PenaltiesCoefficient;
         const NCatboostOptions::TPerFeaturePenalty& firstFeatureUsePenalty = featurePenaltiesOptions.FirstFeatureUsePenalty;
-        const NCatboostOptions::TPerFeaturePenalty& perRowPenalty = featurePenaltiesOptions.PerRowPenalty;
+        const NCatboostOptions::TPerFeaturePenalty& perObjectPenalty = featurePenaltiesOptions.PerObjectFeaturePenalty;
 
         const TFeaturesLayout& layout = *ctx.Layout;
         const TVector<bool>& usedFeatures = ctx.LearnProgress->UsedFeatures;
-
-        const TFeaturesLayout& layout = *ctx.Layout;
-        const TVector<bool>& usedFeatures = ctx.LearnProgress->UsedFeatures;
-        const auto& usedFeaturesPerRow = ctx.LearnProgress->UsedFeaturesPerRow;
-        TPerRowFeaturePenaltiesCalcer perRowFeaturePenaltiesCalcer(
-            perRowPenalty,
+        const auto& usedFeaturesPerObject = ctx.LearnProgress->UsedFeaturesPerObject;
+        TPerObjectFeaturePenaltiesCalcer perRowFeaturePenaltiesCalcer(
+            perObjectPenalty,
             ctx.Params.ObliviousTreeOptions->GrowPolicy == EGrowPolicy::SymmetricTree,
             usedFeatures,
-            usedFeaturesPerRow,
+            usedFeaturesPerObject,
             ctx.SampledDocs,
             leaves
         ); //caches results for already calculated features
@@ -212,12 +203,12 @@ namespace NCB {
                 firstFeatureUsePenalty,
                 penaltiesCoefficient
             );
-            score -= GetSplitPerRowPenalty(
+            score -= GetSplitPerObjectPenalty(
                 bestSplit,
                 ctx.LearnProgress->EstimatedFeaturesContext,
                 layout,
                 penaltiesCoefficient,
-                &perRowFeaturePenaltiesCalcer
+                &perObjectFeaturePenaltiesCalcer
             );
         }
     }

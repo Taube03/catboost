@@ -110,7 +110,7 @@ struct TLearnProgress {
     TRestorableFastRng64 Rand;
 
     TVector<bool> UsedFeatures;
-    TMap<ui32, TVector<bool>> UsedFeaturesPerRow;
+    TMap<ui32, TVector<bool>> UsedFeaturesPerObject;
 
     NCB::TCombinedEstimatedFeaturesContext EstimatedFeaturesContext;
 public:
