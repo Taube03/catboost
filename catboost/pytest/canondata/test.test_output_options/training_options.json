@@ -250,8 +250,8 @@
         "rsm" : 1,
         "dev_leafwise_approxes" : false,
         "penalties" : {
+            "per_object_feature_penalties" : { },
             "first_feature_use_penalties" : { },
-            "per_row_penalties" : { },
             "feature_weights" : { },
             "penalties_coefficient" : 1
         },

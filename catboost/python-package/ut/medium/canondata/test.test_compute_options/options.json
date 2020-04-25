@@ -260,7 +260,7 @@
             "feature_weights": {}, 
             "first_feature_use_penalties": {}, 
             "penalties_coefficient": 1, 
-            "per_row_penalties": {}
+            "per_object_feature_penalties": {}
         }, 
         "random_strength": 1, 
         "rsm": 1, 
