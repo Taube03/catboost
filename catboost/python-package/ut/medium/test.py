@@ -7575,6 +7575,7 @@ def test_first_feature_use_penalties_work():
         'iterations': 5,
         'learning_rate': 0.03,
         'task_type': 'CPU',
+        'devices': '0',
         'loss_function': 'MultiClass',
     }
 
@@ -7635,6 +7636,7 @@ def test_penalties_coefficient_work():
         'iterations': 5,
         'learning_rate': 0.03,
         'task_type': 'CPU',
+        'devices': '0',
         'loss_function': 'MultiClass',
     }
 
