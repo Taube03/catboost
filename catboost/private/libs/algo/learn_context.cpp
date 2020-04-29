@@ -618,7 +618,7 @@ TLearnProgress::TLearnProgress(
     const auto externalFeaturesCount = data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount();
     const auto objectsCount = data.Learn->ObjectsData->GetObjectCount();
     UsedFeatures.resize(externalFeaturesCount, false);
-    // for symmetric tree features usage is equal for all objects, so we don't need to store it for specific features
+    // for symmetric tree features usage is equal for all objects, so we don't need to store it for each object individually
     if (trainOptions.GrowPolicy.Get() != EGrowPolicy::SymmetricTree) {
         const auto& featurePenaltiesOptions = trainOptions.FeaturePenalties.Get();
         for (const auto[featureIdx, penalty] : featurePenaltiesOptions.PerObjectFeaturePenalty.Get()) {

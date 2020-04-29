@@ -3581,7 +3581,7 @@ class CatBoostClassifier(CatBoost):
         Penalties to first use of specific feature in model. Should be non-negative.
 
     per_object_feature_penalties : list or numpy.ndarray or string or dict, [default=None]
-        Penalties for first use of feature in specific row in model. Should be non-negative.
+        Penalties for first use of feature for each object. Should be non-negative.
 
     sampling_frequency : string, [default=PerTree]
         Frequency to sample weights and objects when building trees.

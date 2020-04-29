@@ -69,14 +69,14 @@ namespace NCB {
     public:
         explicit TPerObjectFeaturePenaltiesCalcer(
             const NCatboostOptions::TPerFeaturePenalty& penalties,
-            const bool areFeatureUsagesEqualForAllObjects, //for symmetric trees
+            const EGrowPolicy growPolicy,
             const TVector<bool>& usedFeatures,
             const TMap<ui32, TVector<bool>>& usedFeaturesPerObject,
             const TCalcScoreFold& calcScoreFold,
             const TVector<TIndexType>& leaves
         )
             : Penalties(penalties)
-            , AreFeatureUsagesEqualForAllObjects(areFeatureUsagesEqualForAllObjects)
+            , GrowPolicy(growPolicy)
             , UsedFeatures(usedFeatures)
             , UsedFeaturesPerObject(usedFeaturesPerObject)
             , CalcScoreFold(calcScoreFold)
@@ -102,7 +102,7 @@ namespace NCB {
             const float penaltyPerObject = penaltyIt->second;
 
             ui64 objectsCount = 0;
-            if (AreFeatureUsagesEqualForAllObjects) {
+            if (GrowPolicy == EGrowPolicy::SymmetricTree) {
                 if (!UsedFeatures[externalFeatureIdx]) {
                     for (const auto leafNumber : Leaves) {
                         const auto& leafBounds = CalcScoreFold.LeavesBounds[leafNumber];
@@ -132,7 +132,7 @@ namespace NCB {
         }
 
         const NCatboostOptions::TPerFeaturePenalty& Penalties;
-        const bool AreFeatureUsagesEqualForAllObjects;
+        const EGrowPolicy GrowPolicy;
         const TVector<bool>& UsedFeatures;
         const TMap<ui32, TVector<bool>>& UsedFeaturesPerObject;
         const TCalcScoreFold& CalcScoreFold;
@@ -178,12 +178,12 @@ namespace NCB {
         const auto& usedFeaturesPerObject = ctx.LearnProgress->UsedFeaturesPerObject;
         TPerObjectFeaturePenaltiesCalcer perObjectFeaturePenaltiesCalcer(
             perObjectPenalty,
-            ctx.Params.ObliviousTreeOptions->GrowPolicy == EGrowPolicy::SymmetricTree,
+            ctx.Params.ObliviousTreeOptions->GrowPolicy,
             usedFeatures,
             usedFeaturesPerObject,
             ctx.SampledDocs,
             leaves
-        ); //caches results for already calculated features
+        ); // caches results for already calculated features
 
         for (auto& cand : *candidates) {
             double& score = cand.BestScore.Val;
