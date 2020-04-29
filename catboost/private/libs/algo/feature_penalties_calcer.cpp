@@ -104,10 +104,7 @@ namespace NCB {
             ui64 objectsCount = 0;
             if (GrowPolicy == EGrowPolicy::SymmetricTree) {
                 if (!UsedFeatures[externalFeatureIdx]) {
-                    for (const auto leafNumber : Leaves) {
-                        const auto& leafBounds = CalcScoreFold.LeavesBounds[leafNumber];
-                        objectsCount += leafBounds.End - leafBounds.Begin;
-                    }
+                    objectsCount = CalcScoreFold.GetDocCount();
                 }
             } else {
                 auto it = UsedFeaturesPerObject.find(externalFeatureIdx);
