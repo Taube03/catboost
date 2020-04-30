@@ -9,8 +9,6 @@ RECURSE(
     blockcodecs/ut
     build_info
     cgiparam
-    cgiparam/fuzz
-    cgiparam/ut
     charset
     charset/ut
     chromium_trace
@@ -101,10 +99,6 @@ RECURSE(
     unittest/fat
     unittest/main
     unittest/ut
-    yson
-    yson/node
-    yson/node/pybind
-    yson/node/ut
 )
 
 IF (HAVE_CUDA)

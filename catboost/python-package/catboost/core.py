@@ -1996,7 +1996,7 @@ class CatBoost(_CatBoostBase):
     def _iterate_leaf_indexes(self, data, ntree_start, ntree_end):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes", thread_count)
+        data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes", thread_count=-1)
         leaf_indexes_iterator = self._leaf_indexes_iterator(data, ntree_start, ntree_end)
         for leaf_index in leaf_indexes_iterator:
             yield leaf_index
@@ -2292,9 +2292,11 @@ class CatBoost(_CatBoostBase):
             used only for ShapValues type
             Possible values:
                 - "Regular"
-                    Calculate normal SHAP values
+                    Calculate regular SHAP values
                 - "Approximate"
                     Calculate approximate SHAP values
+                - "Exact"
+                    Calculate exact SHAP values
 
         interaction_indices : list of int or string (feature_idx_1, feature_idx_2), optional (default=None)
             used only for ShapInteractionValues type
@@ -3031,7 +3033,7 @@ class CatBoost(_CatBoostBase):
         return graph
 
     def plot_tree(self, tree_idx, pool=None):
-        pool, _ = self._process_predict_input_data(pool, "plot_tree", thread_count) if pool is not None else (None, None)
+        pool, _ = self._process_predict_input_data(pool, "plot_tree", thread_count=-1) if pool is not None else (None, None)
 
         splits = self._get_tree_splits(tree_idx, pool)
         leaf_values = self._get_tree_leaf_values(tree_idx)
